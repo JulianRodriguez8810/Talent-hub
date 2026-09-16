@@ -365,6 +365,16 @@ function navigate(section) {
   const target = document.getElementById(`section-${section}`);
   if (target) target.classList.remove('hidden');
 
+  // Toggle sidebar filters visibility
+  const sidebarFilters = document.getElementById('sidebarFiltersSection');
+  if (sidebarFilters) {
+    if (section === 'talentos') {
+      sidebarFilters.classList.remove('hidden');
+    } else {
+      sidebarFilters.classList.add('hidden');
+    }
+  }
+
   // Render section
   if (section === 'talentos') renderTalentos();
   if (section === 'clientes') renderClientes();
