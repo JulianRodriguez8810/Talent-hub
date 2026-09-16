@@ -463,10 +463,10 @@ function renderTalentGrid() {
   if (!grid) return;
 
   const counts = {
-    total: VX.talents.filter(t => t.activo).length,
-    bench: VX.talents.filter(t => t.disponibilidad === 'Inmediata' && t.activo).length,
-    asignados: VX.talents.filter(t => t.asignacion && t.activo).length,
-    matchAvg: Math.round(VX.talents.reduce((a, b) => a + b.match, 0) / VX.talents.length)
+    total: VX.talents.filter(t => t.activo !== false).length,
+    bench: VX.talents.filter(t => t.disponibilidad === 'Inmediata' && t.activo !== false).length,
+    asignados: VX.talents.filter(t => t.asignacion && t.activo !== false).length,
+    matchAvg: Math.round(VX.talents.reduce((a, b) => a + (b.match || 80), 0) / (VX.talents.length || 1))
   };
   const totalEl = document.getElementById('metricTotal');
   const benchEl = document.getElementById('metricBench');
@@ -1330,7 +1330,7 @@ async function confirmCVAndAdd() {
     const { data, error } = await supabaseClient.from('talents').insert([newTalent]).select();
     if (error) {
       console.error('Error insertando talento en Supabase:', error);
-      showToast('Error al guardar en Supabase DB', 'error');
+      showToast(`Guardado localmente (Nota Supabase: ${error.message || 'Verificar tabla'})`, 'info');
     } else if (data && data.length > 0) {
       newTalent.id = data[0].id;
     }
@@ -1339,18 +1339,26 @@ async function confirmCVAndAdd() {
   if (!newTalent.id) newTalent.id = Date.now();
 
   VX.talents.unshift(newTalent);
-  VX.filteredTalents = [...VX.talents];
-
+  
   // Reset parser
   currentUploadedCVFile = null;
-  document.getElementById('cvParsePanel').classList.add('hidden');
-  document.getElementById('cvFileInfo').classList.add('hidden');
-  document.getElementById('cvProgress').style.width = '0%';
-  document.getElementById('cvProgressText').textContent = 'Iniciando análisis...';
-  document.getElementById('dropZone').classList.remove('border-primary', 'bg-surface-container-low');
+  const parsePanel = document.getElementById('cvParsePanel');
+  const fileInfo = document.getElementById('cvFileInfo');
+  const progress = document.getElementById('cvProgress');
+  const progressTxt = document.getElementById('cvProgressText');
+  const dropZone = document.getElementById('dropZone');
 
-  showToast(`${nombre} guardado en Supabase y pool de talentos ✓`, 'success');
-  setTimeout(() => navigate('talentos'), 1200);
+  if (parsePanel) parsePanel.classList.add('hidden');
+  if (fileInfo) fileInfo.classList.add('hidden');
+  if (progress) progress.style.width = '0%';
+  if (progressTxt) progressTxt.textContent = 'Iniciando análisis...';
+  if (dropZone) dropZone.classList.remove('border-primary', 'bg-surface-container-low');
+
+  showToast(`${nombre} guardado y visible en el pool de talentos ✓`, 'success');
+  
+  // Reset filters to ensure the new candidate is not filtered out
+  resetFilters();
+  navigate('talentos');
 }
 
 // ---- PROPOSALS ----
@@ -1654,14 +1662,16 @@ async function fetchFromSupabase() {
   try {
     const { data: talentsData, error: tErr } = await supabaseClient.from('talents').select('*').order('id', { ascending: false });
     if (!tErr && talentsData && talentsData.length > 0) {
-      VX.talents = talentsData.map(t => ({
+      const dbTalents = talentsData.map(t => ({
         ...t,
-        stack: Array.isArray(t.stack) ? t.stack : [],
-        certificaciones: Array.isArray(t.certificaciones) ? t.certificaciones : [],
-        proyectos: Array.isArray(t.proyectos) ? t.proyectos : []
+        stack: Array.isArray(t.stack) ? t.stack : (typeof t.stack === 'string' ? JSON.parse(t.stack || '[]') : []),
+        certificaciones: Array.isArray(t.certificaciones) ? t.certificaciones : (typeof t.certificaciones === 'string' ? JSON.parse(t.certificaciones || '[]') : []),
+        proyectos: Array.isArray(t.proyectos) ? t.proyectos : (typeof t.proyectos === 'string' ? JSON.parse(t.proyectos || '[]') : [])
       }));
-      VX.filteredTalents = [...VX.talents];
-      if (VX.currentSection === 'talentos') renderTalentos();
+      const dbIds = new Set(dbTalents.map(d => String(d.id)));
+      const localOnly = VX.talents.filter(lt => !dbIds.has(String(lt.id)));
+      VX.talents = [...localOnly, ...dbTalents];
+      applyFilters();
     }
 
     const { data: clientsData, error: cErr } = await supabaseClient.from('clients').select('*').order('id', { ascending: true });
