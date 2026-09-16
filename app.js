@@ -1327,12 +1327,11 @@ async function confirmCVAndAdd() {
   };
 
   if (supabaseClient) {
-    const { data, error } = await supabaseClient.from('talents').insert([newTalent]).select();
-    if (error) {
-      console.error('Error insertando talento en Supabase:', error);
-      showToast(`Guardado localmente (Nota Supabase: ${error.message || 'Verificar tabla'})`, 'info');
-    } else if (data && data.length > 0) {
-      newTalent.id = data[0].id;
+    const insertedId = await insertTalentToSupabase(newTalent);
+    if (insertedId) {
+      newTalent.id = insertedId;
+    } else {
+      showToast('Guardado en vista local (Verificar tablas en Supabase)', 'info');
     }
   }
 
@@ -1655,22 +1654,83 @@ function globalSearch(q) {
 }
 
 // ---- SUPABASE DATA SYNC & DIRECT DELETE ----
-let currentUploadedCVFile = null;
+async function insertTalentToSupabase(talentObj) {
+  if (!supabaseClient) return null;
+  
+  let payload = { ...talentObj };
+  
+  // Try direct insert with JS arrays/objects
+  let { data, error } = await supabaseClient.from('talents').insert([payload]).select();
+  
+  // If error occurs, fallback with JSON strings for PostgreSQL text columns
+  if (error) {
+    console.warn("Reintentando inserción en Supabase serializando JSON:", error.message);
+    const textPayload = {
+      ...talentObj,
+      stack: JSON.stringify(talentObj.stack || []),
+      certificaciones: JSON.stringify(talentObj.certificaciones || []),
+      proyectos: JSON.stringify(talentObj.proyectos || []),
+      asignacion: talentObj.asignacion ? JSON.stringify(talentObj.asignacion) : null
+    };
+    const retry = await supabaseClient.from('talents').insert([textPayload]).select();
+    data = retry.data;
+    error = retry.error;
+  }
+  
+  if (error) {
+    console.error("Error al insertar en Supabase:", error);
+    return null;
+  }
+  return data && data.length > 0 ? data[0].id : null;
+}
 
 async function fetchFromSupabase() {
   if (!supabaseClient) return;
   try {
     const { data: talentsData, error: tErr } = await supabaseClient.from('talents').select('*').order('id', { ascending: false });
     if (!tErr && talentsData && talentsData.length > 0) {
-      const dbTalents = talentsData.map(t => ({
-        ...t,
-        stack: Array.isArray(t.stack) ? t.stack : (typeof t.stack === 'string' ? JSON.parse(t.stack || '[]') : []),
-        certificaciones: Array.isArray(t.certificaciones) ? t.certificaciones : (typeof t.certificaciones === 'string' ? JSON.parse(t.certificaciones || '[]') : []),
-        proyectos: Array.isArray(t.proyectos) ? t.proyectos : (typeof t.proyectos === 'string' ? JSON.parse(t.proyectos || '[]') : [])
-      }));
+      const dbTalents = talentsData.map(t => {
+        let parsedStack = [];
+        try { parsedStack = Array.isArray(t.stack) ? t.stack : JSON.parse(t.stack || '[]'); } catch(e) { parsedStack = ['IT']; }
+
+        let parsedCerts = [];
+        try { parsedCerts = Array.isArray(t.certificaciones) ? t.certificaciones : JSON.parse(t.certificaciones || '[]'); } catch(e) { parsedCerts = []; }
+
+        let parsedProjs = [];
+        try { parsedProjs = Array.isArray(t.proyectos) ? t.proyectos : JSON.parse(t.proyectos || '[]'); } catch(e) { parsedProjs = []; }
+
+        let parsedAsig = null;
+        try { parsedAsig = typeof t.asignacion === 'string' ? JSON.parse(t.asignacion) : t.asignacion; } catch(e) { parsedAsig = null; }
+
+        return {
+          id: t.id,
+          nombre: t.nombre || 'Candidato IT',
+          rol: t.rol || 'Software Engineer',
+          seniority: t.seniority || 'Senior',
+          pais: t.pais || 'Argentina',
+          zona: t.zona || 'GMT-3',
+          disponibilidad: t.disponibilidad || 'Inmediata',
+          ingles: t.ingles || 'C1',
+          tarifa: Number(t.tarifa) || 50,
+          experiencia: Number(t.experiencia) || 3,
+          stack: parsedStack.length > 0 ? parsedStack : ['IT'],
+          certificaciones: parsedCerts,
+          email: t.email || '',
+          telefono: t.telefono || '',
+          linkedin: t.linkedin || '',
+          resumen: t.resumen || 'Sin resumen registrado.',
+          proyectos: parsedProjs,
+          match: Number(t.match) || 85,
+          asignacion: parsedAsig,
+          avatar: t.avatar || null,
+          cv_url: t.cv_url || null,
+          activo: t.activo !== false
+        };
+      });
+
       const dbIds = new Set(dbTalents.map(d => String(d.id)));
       const localOnly = VX.talents.filter(lt => !dbIds.has(String(lt.id)));
-      VX.talents = [...localOnly, ...dbTalents];
+      VX.talents = [...dbTalents, ...localOnly];
       applyFilters();
     }
 
