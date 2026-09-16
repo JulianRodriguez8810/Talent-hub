@@ -1282,18 +1282,38 @@ function addSkillChip() {
   input.value = '';
 }
 
+function openManualTalentForm() {
+  currentUploadedCVFile = null;
+  const fields = ['parsedNombre', 'parsedEmail', 'parsedTelefono', 'parsedLinkedin', 'parsedRol', 'parsedExperiencia', 'parsedTarifa', 'parsedResumen'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const skillsContainer = document.getElementById('parsedSkillsContainer');
+  if (skillsContainer) skillsContainer.innerHTML = '';
+  const fileInfo = document.getElementById('cvFileInfo');
+  if (fileInfo) fileInfo.classList.add('hidden');
+  const parsePanel = document.getElementById('cvParsePanel');
+  if (parsePanel) {
+    parsePanel.classList.remove('hidden');
+    parsePanel.style.display = 'block';
+  }
+  navigate('cargar-cv');
+  showToast('Completá los datos que tengas disponibles. Ningún campo es obligatorio.', 'info');
+}
+
 async function confirmCVAndAdd() {
-  const nombre = document.getElementById('parsedNombre')?.value;
-  const rol = document.getElementById('parsedRol')?.value;
-  const email = document.getElementById('parsedEmail')?.value;
-  const telefono = document.getElementById('parsedTelefono')?.value;
-  const linkedin = document.getElementById('parsedLinkedin')?.value;
-  const experiencia = parseFloat(document.getElementById('parsedExperiencia')?.value) || 1;
-  const tarifa = parseInt(document.getElementById('parsedTarifa')?.value) || 40;
-  const pais = document.getElementById('parsedPais')?.value;
-  const ingles = document.getElementById('parsedIngles')?.value;
-  const senioryVal = document.getElementById('parsedSeniority')?.value;
-  const resumen = document.getElementById('parsedResumen')?.value;
+  const nombre = document.getElementById('parsedNombre')?.value?.trim() || 'Candidato IT';
+  const rol = document.getElementById('parsedRol')?.value?.trim() || 'Software Engineer';
+  const email = document.getElementById('parsedEmail')?.value?.trim() || '';
+  const telefono = document.getElementById('parsedTelefono')?.value?.trim() || '';
+  const linkedin = document.getElementById('parsedLinkedin')?.value?.trim() || '';
+  const experiencia = parseFloat(document.getElementById('parsedExperiencia')?.value) || 0;
+  const tarifa = parseInt(document.getElementById('parsedTarifa')?.value) || 0;
+  const pais = document.getElementById('parsedPais')?.value || 'Argentina';
+  const ingles = document.getElementById('parsedIngles')?.value || 'B2';
+  const senioryVal = document.getElementById('parsedSeniority')?.value || 'Senior';
+  const resumen = document.getElementById('parsedResumen')?.value?.trim() || 'Perfil cargado en Talent Hub.';
 
   // Collect skills
   const skillEls = document.querySelectorAll('#parsedSkillsContainer span');
@@ -1315,7 +1335,7 @@ async function confirmCVAndAdd() {
     nombre, rol, seniority: senioryVal, pais,
     zona: zonaMap[pais] || 'GMT-3', disponibilidad: 'Inmediata',
     ingles, tarifa, experiencia,
-    stack: skills.length > 0 ? skills : ['Sin especificar'],
+    stack: skills.length > 0 ? skills : ['General IT'],
     certificaciones: [],
     email, telefono: telefono || '', linkedin: linkedin || '',
     resumen: resumen || '',

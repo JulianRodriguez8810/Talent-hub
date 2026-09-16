@@ -326,23 +326,28 @@
           <h1 class="text-headline-xl font-sans font-bold text-text-heading tracking-tight">Directorio de Talentos & Matchmaking</h1>
           <p class="text-body-md font-sans text-text-muted mt-0.5">Despliegue ágil de ingenieros pre-calificados para integración enterprise.</p>
         </div>
-        <!-- KPI Metrics -->
-        <div class="grid grid-cols-4 gap-3 shrink-0">
-          <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
-            <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Total</span>
-            <span class="text-headline-md font-sans font-bold text-text-heading" id="metricTotal">18</span>
-          </div>
-          <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
-            <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Bench</span>
-            <span class="text-headline-md font-sans font-bold text-status-available" id="metricBench">—</span>
-          </div>
-          <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
-            <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Asignados</span>
-            <span class="text-headline-md font-sans font-bold text-status-placed" id="metricAsig">—</span>
-          </div>
-          <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
-            <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Match</span>
-            <span class="text-headline-md font-sans font-bold text-primary" id="metricMatch">—</span>
+        <!-- Action & KPI Metrics -->
+        <div class="flex items-center gap-3 shrink-0">
+          <button onclick="openManualTalentForm()" class="px-4 py-3 rounded-xl bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all flex items-center gap-2 shadow-sm whitespace-nowrap">
+            <span class="material-symbols-outlined text-[20px]">person_add</span>+ Cargar Talento
+          </button>
+          <div class="grid grid-cols-4 gap-3">
+            <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
+              <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Total</span>
+              <span class="text-headline-md font-sans font-bold text-text-heading" id="metricTotal">18</span>
+            </div>
+            <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
+              <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Bench</span>
+              <span class="text-headline-md font-sans font-bold text-status-available" id="metricBench">—</span>
+            </div>
+            <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
+              <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Asignados</span>
+              <span class="text-headline-md font-sans font-bold text-status-placed" id="metricAsig">—</span>
+            </div>
+            <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
+              <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Match</span>
+              <span class="text-headline-md font-sans font-bold text-primary" id="metricMatch">—</span>
+            </div>
           </div>
         </div>
       </div>
