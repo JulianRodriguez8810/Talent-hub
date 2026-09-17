@@ -165,6 +165,17 @@
         <span class="material-symbols-outlined text-[20px]">apartment</span>
         <span>Clientes & Cuentas</span>
       </button>
+
+      <!-- Client list in sidebar when section is active -->
+      <div id="sidebarClientListSection" class="hidden flex flex-col gap-2 pt-3 border-t border-border-subtle">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-label-sm font-label font-bold text-text-heading uppercase tracking-wider">Lista de Clientes</span>
+          <button onclick="openNewClientModal()" class="text-[11px] font-label text-primary font-bold hover:underline">+ Nuevo</button>
+        </div>
+        <div id="sidebarClientList" class="flex flex-col gap-1 max-h-64 overflow-y-auto pr-1">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
       <button data-section="cargar-cv" onclick="navigate('cargar-cv')" class="nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-label-lg font-label text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface w-full text-left">
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined text-[20px]">upload_file</span>
@@ -264,9 +275,9 @@
       <div class="flex flex-col gap-1 pt-2 border-t border-border-subtle">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-label font-bold text-text-heading">Tarifa / h</span>
-          <span class="text-[10px] font-label text-text-muted" id="tarifaLabel">$20 – $150</span>
+          <span class="text-[10px] font-label text-text-muted" id="tarifaLabel">$0 – $300</span>
         </div>
-        <input type="range" min="20" max="150" value="150" step="5" class="w-full accent-primary h-1.5 cursor-pointer" oninput="VX.filters.tarifaMax=parseInt(this.value); document.getElementById('tarifaLabel').textContent='$20 – $'+this.value; applyFilters()"/>
+        <input type="range" min="0" max="300" value="300" step="5" class="w-full accent-primary h-1.5 cursor-pointer" oninput="VX.filters.tarifaMax=parseInt(this.value); document.getElementById('tarifaLabel').textContent='$0 – $'+this.value; applyFilters()"/>
       </div>
     </div>
   </div>
@@ -381,7 +392,7 @@
          SECTION: CLIENTES
     ======================== -->
     <section id="section-clientes" class="section-content hidden px-gutter py-6 pb-20">
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
         <div>
           <div class="flex items-center gap-2 text-text-muted text-label-sm font-label uppercase tracking-wider mb-1">
             <span>Gestión B2B Enterprise</span><span>/</span>
@@ -396,15 +407,24 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        <!-- Client list -->
-        <div class="lg:col-span-3 flex flex-col gap-3">
-          <div id="clientList" class="flex flex-col gap-2"><!-- Rendered by JS --></div>
+      <!-- Barra de navegación / Selección superior de clientes -->
+      <div class="bg-surface-card rounded-xl p-3 shadow-sm border border-border-subtle mb-5 overflow-x-auto flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 overflow-x-auto py-0.5">
+          <span class="text-label-sm font-label text-text-muted font-bold uppercase tracking-wider shrink-0 px-1 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px] text-primary">domain</span> Cliente Activo:
+          </span>
+          <div id="topClientSelector" class="flex items-center gap-2 overflow-x-auto py-0.5 scrollbar-none">
+            <!-- Rendered by JS -->
+          </div>
         </div>
-        <!-- Client detail -->
-        <div class="lg:col-span-9">
-          <div id="clientDetail"><!-- Rendered by JS --></div>
-        </div>
+        <button onclick="openNewClientModal()" class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-container text-on-primary-container text-label-sm font-label font-bold hover:bg-primary transition-all shadow-sm">
+          <span class="material-symbols-outlined text-[16px]">domain_add</span>+ Nuevo Cliente
+        </button>
+      </div>
+
+      <!-- Detalle del cliente a Ancho Completo (Full Screen) -->
+      <div class="w-full">
+        <div id="clientDetail" class="w-full"><!-- Rendered by JS --></div>
       </div>
     </section>
 
@@ -664,12 +684,74 @@
 </div>
 
 <!-- ============================================================
-     NEW CALL MODAL
+     CALL MODAL
 ============================================================ -->
 <div id="callModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
   <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="document.getElementById('callModal').classList.add('hidden')"></div>
-  <div class="relative w-full max-w-lg bg-surface-card rounded-2xl shadow-2xl z-10">
-    <div id="callModalContent" class="p-6"><!-- Rendered by JS --></div>
+  <div class="relative w-full max-w-xl bg-surface-card rounded-2xl shadow-2xl p-6 z-10 border border-border-subtle max-h-[90vh] overflow-y-auto">
+    <div id="callModalContent"><!-- Rendered by JS --></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     NEW CLIENT MODAL
+============================================================ -->
+<div id="clientModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeClientModal()"></div>
+  <div class="relative w-full max-w-lg bg-surface-card rounded-2xl shadow-2xl p-6 z-10 border border-border-subtle">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-headline-md font-sans font-bold text-text-heading flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">domain_add</span><span id="clientModalTitle">Nuevo Cliente B2B</span>
+      </h3>
+      <button onclick="closeClientModal()" class="p-1 rounded-lg text-text-muted hover:text-text-heading">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form id="clientForm" onsubmit="saveClientToSupabase(event)" class="flex flex-col gap-3">
+      <input type="hidden" id="clientFormId" value=""/>
+      <div>
+        <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Nombre Empresa / Cliente *</label>
+        <input type="text" id="clientNombre" required placeholder="Ej. TechCorp LATAM" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Industria / Sector</label>
+          <input type="text" id="clientIndustria" placeholder="Ej. Fintech, Retail..." class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
+        </div>
+        <div>
+          <label class="text-label-sm font-label font-bold text-text-heading block mb-1">País / Sede</label>
+          <input type="text" id="clientPais" placeholder="Ej. Argentina, Colombia..." class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Contacto Principal</label>
+          <input type="text" id="clientContacto" placeholder="Nombre de contacto..." class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
+        </div>
+        <div>
+          <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Teléfono</label>
+          <input type="text" id="clientTelefono" placeholder="+54 11 ..." class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
+        </div>
+      </div>
+      <div>
+        <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Email de Contacto</label>
+        <input type="email" id="clientEmail" placeholder="contacto@empresa.com" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
+      </div>
+      <div>
+        <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Implementación Requerida / Necesidades del Cliente</label>
+        <textarea id="clientNecesidades" rows="3" placeholder="Pegá aquí requerimientos técnicos, scope del proyecto, stack necesitado..." class="w-full p-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary resize-y"></textarea>
+      </div>
+      <div>
+        <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Notas de Reunión, Ideas o PDF resúmenes</label>
+        <textarea id="clientNotas" rows="2" placeholder="Pegá notas de call, acuerdos, ideas o resumen de documento..." class="w-full p-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary resize-y"></textarea>
+      </div>
+      <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-border-subtle">
+        <button type="button" onclick="closeClientModal()" class="px-4 py-2.5 rounded-xl border border-border-strong text-text-heading text-label-md font-label font-bold hover:bg-surface-container-low">Cancelar</button>
+        <button type="submit" class="px-5 py-2.5 rounded-xl bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[18px]">save</span>Guardar Cliente
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 

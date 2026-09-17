@@ -11,7 +11,7 @@
 
 // ---- SUPABASE CLIENT ----
 const SUPABASE_URL = 'https://nbyvtpiiyconbjqduyms.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_a7FGzWILNy95vPFvlk7CuA_v6HxSKMz';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ieXZ0cGlpeWNvbmJqcWR1eW1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1ODgxMDcsImV4cCI6MjEwNTE2NDEwN30.kS13oCNaxqHBjbVDUMFvceohQEE8Mqym0wpUjj8l6TQ';
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 // ---- GLOBAL STATE ----
@@ -30,279 +30,16 @@ const VX = {
     disponibilidad: [],
     seniority: [],
     pais: [],
-    tarifaMin: 20,
-    tarifaMax: 150
+    tarifaMin: 0,
+    tarifaMax: 300
   }
 };
 
-// ---- TALENT DATA (FALLBACK & SEED) ----
-VX.talents = [
-  {
-    id: 1, nombre: 'Mateo Rivas', rol: 'Cloud Architect', seniority: 'Senior',
-    pais: 'Argentina', zona: 'GMT-3', disponibilidad: 'Inmediata',
-    ingles: 'C1', tarifa: 85, experiencia: 8,
-    stack: ['Azure', '.NET', 'DevOps', 'Terraform', 'Kubernetes'],
-    certificaciones: ['AZ-900', 'AZ-104', 'AZ-305'],
-    email: 'mateo.rivas@gmail.com', telefono: '+54 9 11 5555-1234',
-    linkedin: 'linkedin.com/in/mateo-rivas-cloud',
-    resumen: 'Cloud Architect con 8 años de experiencia en migraciones enterprise a Azure. Especializado en diseño de arquitecturas multi-región, FinOps y modernización de aplicaciones legacy.',
-    proyectos: ['Migración Azure para Banco Galicia', 'DevOps Pipeline para Mercado Libre', 'Arquitectura multi-cloud para Rappi'],
-    match: 97, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 2, nombre: 'Valentina Torres', rol: 'Full Stack Developer', seniority: 'Semi-Senior',
-    pais: 'Colombia', zona: 'GMT-5', disponibilidad: 'Inmediata',
-    ingles: 'B2', tarifa: 55, experiencia: 4,
-    stack: ['React', 'Node.js', '.NET', 'PostgreSQL', 'Azure'],
-    certificaciones: ['AZ-204'],
-    email: 'val.torres@outlook.com', telefono: '+57 300 123 4567',
-    linkedin: 'linkedin.com/in/valentina-torres-dev',
-    resumen: 'Desarrolladora full stack con sólida experiencia en React y .NET. Ha liderado el frontend de 3 productos SaaS desde cero con enfoque en UX y performance.',
-    proyectos: ['Portal B2B para TechCorp Colombia', 'E-commerce Falabella', 'App Bancaria Davivienda'],
-    match: 89, asignacion: { cliente: 'Fintech Solutions LATAM', horas: 20 }, avatar: null, activo: true
-  },
-  {
-    id: 3, nombre: 'Andrés Morales', rol: 'DevOps Engineer', seniority: 'Senior',
-    pais: 'México', zona: 'GMT-6', disponibilidad: 'Parcial',
-    ingles: 'C1', tarifa: 75, experiencia: 6,
-    stack: ['DevOps', 'Kubernetes', 'Jenkins', 'Azure', 'Docker'],
-    certificaciones: ['AZ-400', 'CKA'],
-    email: 'amorales.devops@gmail.com', telefono: '+52 55 9876 5432',
-    linkedin: 'linkedin.com/in/andres-morales-devops',
-    resumen: 'DevOps Engineer senior con expertise en CI/CD pipelines y Kubernetes. Ha reducido tiempos de deployment en un 70% en proyectos enterprise de alta criticidad.',
-    proyectos: ['CI/CD Pipeline BBVA México', 'K8s Migration OCC', 'Azure DevOps Telmex'],
-    match: 93, asignacion: { cliente: 'Global Logistics Corp', horas: 30 }, avatar: null, activo: true
-  },
-  {
-    id: 4, nombre: 'Sofía Mendoza', rol: 'Data Engineer', seniority: 'Senior',
-    pais: 'Argentina', zona: 'GMT-3', disponibilidad: 'Inmediata',
-    ingles: 'C1', tarifa: 80, experiencia: 7,
-    stack: ['IA/ML', 'Python', 'Azure', 'Databricks', 'Spark'],
-    certificaciones: ['DP-900', 'DP-203', 'DP-100'],
-    email: 'sofia.mendoza.data@gmail.com', telefono: '+54 351 999 0011',
-    linkedin: 'linkedin.com/in/sofia-mendoza-data',
-    resumen: 'Data Engineer con foco en arquitecturas lakehouse y pipelines de IA. Experiencia en Databricks, Azure Synapse y modelos de ML en producción para empresas Fortune 500.',
-    proyectos: ['Data Platform YPF', 'ML Pipeline MercadoLibre', 'Azure Synapse Santander'],
-    match: 95, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 5, nombre: 'Lucas Ferreira', rol: 'Mobile Developer', seniority: 'Semi-Senior',
-    pais: 'Uruguay', zona: 'GMT-3', disponibilidad: 'Inmediata',
-    ingles: 'B1', tarifa: 50, experiencia: 3,
-    stack: ['Mobile', 'React Native', 'Flutter', 'iOS', 'Android'],
-    certificaciones: [],
-    email: 'lucas.ferreira.mobile@gmail.com', telefono: '+598 99 123 456',
-    linkedin: 'linkedin.com/in/lucas-ferreira-mobile',
-    resumen: 'Desarrollador mobile multiplataforma con 3 apps publicadas en App Store y Play Store. Especializado en animaciones, performance y UX mobile nativa.',
-    proyectos: ['App OCA Bank Uruguay', 'App Antel', 'E-commerce Tienda Inglesa'],
-    match: 82, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 6, nombre: 'Camila Restrepo', rol: 'UX/UI Designer', seniority: 'Senior',
-    pais: 'Colombia', zona: 'GMT-5', disponibilidad: 'Inmediata',
-    ingles: 'C2', tarifa: 65, experiencia: 6,
-    stack: ['UX/UI', 'Figma', 'Design Systems', 'Prototyping', 'CSS'],
-    certificaciones: ['Google UX Design'],
-    email: 'camila.restrepo.ux@gmail.com', telefono: '+57 314 222 3344',
-    linkedin: 'linkedin.com/in/camila-restrepo-ux',
-    resumen: 'UX/UI Designer senior con enfoque en design systems escalables y research centrado en usuario. Ha diseñado productos usados por más de 2M de usuarios en LATAM.',
-    proyectos: ['Design System Bancolombia', 'App Rappi Redesign', 'Portal Claro Colombia'],
-    match: 88, asignacion: { cliente: 'HealthTech Innovations', horas: 40 }, avatar: null, activo: true
-  },
-  {
-    id: 7, nombre: 'Diego Álvarez', rol: 'QA Engineer', seniority: 'Semi-Senior',
-    pais: 'Chile', zona: 'GMT-4', disponibilidad: 'Inmediata',
-    ingles: 'B2', tarifa: 48, experiencia: 4,
-    stack: ['QA', 'Selenium', 'Cypress', 'Playwright', 'Azure'],
-    certificaciones: ['ISTQB Foundation'],
-    email: 'diego.alvarez.qa@gmail.com', telefono: '+56 9 8765 4321',
-    linkedin: 'linkedin.com/in/diego-alvarez-qa',
-    resumen: 'QA Engineer con experiencia en automatización E2E y testing de APIs. Ha implementado pipelines de testing que redujeron bugs en producción en un 60%.',
-    proyectos: ['QA Automation BCI Chile', 'Testing Pipeline Falabella', 'E2E Testing Cornershop'],
-    match: 85, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 8, nombre: 'Isabella Vargas', rol: '.NET Backend Developer', seniority: 'Senior',
-    pais: 'Argentina', zona: 'GMT-3', disponibilidad: 'Inmediata',
-    ingles: 'C1', tarifa: 78, experiencia: 7,
-    stack: ['.NET', 'Azure', 'Microservicios', 'SQL Server', 'RabbitMQ'],
-    certificaciones: ['AZ-204', 'AZ-900'],
-    email: 'isabella.vargas.net@gmail.com', telefono: '+54 11 4444 9999',
-    linkedin: 'linkedin.com/in/isabella-vargas-dotnet',
-    resumen: 'Backend developer .NET con especialización en microservicios y arquitecturas event-driven. Ha migrado monolitos a microservicios para empresas del sector financiero.',
-    proyectos: ['Core Banking Supervielle', 'Microservicios ICBC', 'API Gateway Naranja X'],
-    match: 96, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 9, nombre: 'Nicolás Pardo', rol: 'Salesforce Developer', seniority: 'Senior',
-    pais: 'Colombia', zona: 'GMT-5', disponibilidad: 'Parcial',
-    ingles: 'C1', tarifa: 90, experiencia: 8,
-    stack: ['Salesforce', 'Apex', 'LWC', 'Azure', 'CRM'],
-    certificaciones: ['Salesforce Admin', 'Salesforce Developer', 'Salesforce Architect'],
-    email: 'nicolas.pardo.sf@gmail.com', telefono: '+57 310 555 6677',
-    linkedin: 'linkedin.com/in/nicolas-pardo-salesforce',
-    resumen: 'Salesforce Developer y Architect con 8 años implementando soluciones CRM enterprise. Certificado como Salesforce Architect con historial en proyectos de más de $1M.',
-    proyectos: ['CRM Coltelecom', 'Salesforce CPQ Avianca', 'Service Cloud Bavaria'],
-    match: 91, asignacion: { cliente: 'Global Logistics Corp', horas: 40 }, avatar: null, activo: true
-  },
-  {
-    id: 10, nombre: 'Florencia Gimenez', rol: 'Project Manager', seniority: 'Senior',
-    pais: 'Argentina', zona: 'GMT-3', disponibilidad: 'Inmediata',
-    ingles: 'C2', tarifa: 70, experiencia: 9,
-    stack: ['Azure', 'Scrum', 'Jira', 'PMP', 'Agile'],
-    certificaciones: ['PMP', 'PSM I', 'AZ-900'],
-    email: 'fgimenez.pm@gmail.com', telefono: '+54 11 3333 2222',
-    linkedin: 'linkedin.com/in/florencia-gimenez-pm',
-    resumen: 'Project Manager con certificación PMP y 9 años liderando proyectos IT en sectores financiero, retail y logística. Inglés fluido para gestión de stakeholders internacionales.',
-    proyectos: ['Programa Digital BBVA Argentina', 'Transformación Ágil Naranja X', 'ERP SAP Arcor'],
-    match: 87, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 11, nombre: 'Sebastián López', rol: 'Cybersecurity Specialist', seniority: 'Senior',
-    pais: 'México', zona: 'GMT-6', disponibilidad: 'Inmediata',
-    ingles: 'B2', tarifa: 88, experiencia: 7,
-    stack: ['Azure', 'DevOps', 'Security', 'Pentesting', 'SIEM'],
-    certificaciones: ['CISSP', 'AZ-500', 'CEH'],
-    email: 'sebastian.lopez.sec@gmail.com', telefono: '+52 33 8765 4321',
-    linkedin: 'linkedin.com/in/sebastian-lopez-security',
-    resumen: 'Especialista en ciberseguridad con foco en Azure Security y arquitecturas Zero Trust. Certificado CISSP con experiencia en pentesting y respuesta a incidentes enterprise.',
-    proyectos: ['Zero Trust Architecture Banamex', 'SOC Azure PEMEX', 'Seguridad M365 CFE'],
-    match: 90, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 12, nombre: 'Ana Castillo', rol: 'React Frontend Developer', seniority: 'Junior',
-    pais: 'Chile', zona: 'GMT-4', disponibilidad: 'Inmediata',
-    ingles: 'B1', tarifa: 30, experiencia: 1.5,
-    stack: ['React', 'JavaScript', 'CSS', 'Figma', 'Git'],
-    certificaciones: [],
-    email: 'ana.castillo.dev@gmail.com', telefono: '+56 9 7654 3210',
-    linkedin: 'linkedin.com/in/ana-castillo-react',
-    resumen: 'Frontend developer junior con pasión por UX y código limpio. Rápida aprendizaje, profiling en React hooks y estado global.',
-    proyectos: ['Portal Clientes Banco Estado', 'Landing Pages Entel', 'App Interna Falabella'],
-    match: 75, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 13, nombre: 'Pablo Herrera', rol: 'BI & Analytics Engineer', seniority: 'Semi-Senior',
-    pais: 'Uruguay', zona: 'GMT-3', disponibilidad: 'Parcial',
-    ingles: 'B2', tarifa: 60, experiencia: 5,
-    stack: ['IA/ML', 'Power BI', 'Azure', 'Databricks', 'SQL'],
-    certificaciones: ['PL-300', 'DP-900'],
-    email: 'pablo.herrera.bi@gmail.com', telefono: '+598 91 234 5678',
-    linkedin: 'linkedin.com/in/pablo-herrera-bi',
-    resumen: 'Analytics engineer especializado en Power BI y Azure Synapse. Ha construido data warehouses para retailers con más de 500M de registros y dashboards en tiempo real.',
-    proyectos: ['DWH Disco Uruguay', 'Power BI Platform BSE', 'Analytics Abitab'],
-    match: 83, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 14, nombre: 'Mariana Silva', rol: 'Infrastructure Engineer', seniority: 'Lead',
-    pais: 'Argentina', zona: 'GMT-3', disponibilidad: 'Inmediata',
-    ingles: 'C1', tarifa: 95, experiencia: 10,
-    stack: ['Azure', 'DevOps', 'Terraform', 'Kubernetes', '.NET'],
-    certificaciones: ['AZ-104', 'AZ-305', 'AZ-400', 'CKA'],
-    email: 'mariana.silva.infra@gmail.com', telefono: '+54 11 2222 8888',
-    linkedin: 'linkedin.com/in/mariana-silva-infra',
-    resumen: 'Infrastructure Lead con 10 años en arquitecturas cloud de alta disponibilidad. Ha diseñado plataformas que soportan más de 10M de transacciones diarias en producción.',
-    proyectos: ['Infra Multi-Cloud MercadoPago', 'Azure Landing Zone Personal Pay', 'Kubernetes Platform DIA'],
-    match: 98, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 15, nombre: 'Carlos Mendez', rol: 'iOS Developer', seniority: 'Semi-Senior',
-    pais: 'México', zona: 'GMT-6', disponibilidad: 'Inmediata',
-    ingles: 'B2', tarifa: 55, experiencia: 4,
-    stack: ['Mobile', 'Swift', 'iOS', 'Xcode', 'Firebase'],
-    certificaciones: ['Apple Developer'],
-    email: 'carlos.mendez.ios@gmail.com', telefono: '+52 55 6677 8899',
-    linkedin: 'linkedin.com/in/carlos-mendez-ios',
-    resumen: 'iOS Developer con enfoque en SwiftUI y ARKit. Apps publicadas con más de 200K descargas. Experiencia en fintech y retail mobile.',
-    proyectos: ['App Bancomer iOS', 'App Liverpool iOS', 'App Hey Banco'],
-    match: 80, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 16, nombre: 'Jimena Castro', rol: 'Scrum Master', seniority: 'Senior',
-    pais: 'Colombia', zona: 'GMT-5', disponibilidad: 'Inmediata',
-    ingles: 'C1', tarifa: 65, experiencia: 6,
-    stack: ['Scrum', 'Azure', 'Jira', 'SAFe', 'Agile'],
-    certificaciones: ['CSM', 'SAFe 5', 'PSM II'],
-    email: 'jimena.castro.sm@gmail.com', telefono: '+57 315 888 9900',
-    linkedin: 'linkedin.com/in/jimena-castro-scrum',
-    resumen: 'Scrum Master certificada con experiencia en transformaciones ágiles a escala. Ha facilitado la adopción de SAFe en organizaciones de más de 200 personas.',
-    proyectos: ['Agile Transformation Ecopetrol', 'SAFe Implementation Bancolombia', 'Squads Setup Claro'],
-    match: 86, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 17, nombre: 'Tomás Ruiz', rol: 'AI/ML Engineer', seniority: 'Senior',
-    pais: 'Argentina', zona: 'GMT-3', disponibilidad: 'Inmediata',
-    ingles: 'C1', tarifa: 92, experiencia: 7,
-    stack: ['IA/ML', 'Python', 'Azure', 'LLM', 'TensorFlow'],
-    certificaciones: ['AZ-900', 'DP-100', 'AI-900'],
-    email: 'tomas.ruiz.ai@gmail.com', telefono: '+54 11 7777 6666',
-    linkedin: 'linkedin.com/in/tomas-ruiz-ai',
-    resumen: 'AI/ML Engineer especializado en LLMs y RAG para aplicaciones enterprise. Ha implementado soluciones de IA generativa en Azure OpenAI que ahorraron $2M anuales a clientes.',
-    proyectos: ['LLM Platform Telecom Argentina', 'RAG System Banco Provincia', 'AI Analytics OCA'],
-    match: 94, asignacion: null, avatar: null, activo: true
-  },
-  {
-    id: 18, nombre: 'Lucía Fernández', rol: 'Backend Developer', seniority: 'Lead',
-    pais: 'Chile', zona: 'GMT-4', disponibilidad: 'Parcial',
-    ingles: 'C2', tarifa: 100, experiencia: 11,
-    stack: ['.NET', 'Azure', 'Microservicios', 'IA/ML', 'DevOps'],
-    certificaciones: ['AZ-204', 'AZ-305', 'AZ-400', 'DP-100'],
-    email: 'lucia.fernandez.lead@gmail.com', telefono: '+56 9 5555 1111',
-    linkedin: 'linkedin.com/in/lucia-fernandez-lead',
-    resumen: 'Tech Lead con dominio de .NET y Azure. Ha liderado equipos de hasta 15 personas y arquitecturas para el sector financiero y utilities en toda LATAM. Inglés nativo.',
-    proyectos: ['Core Platform Santander Chile', 'Arquitectura BancoEstado', 'Platform Engineering Enel'],
-    match: 99, asignacion: null, avatar: null, activo: true
-  }
-];
+// ---- TALENT DATA ----
+VX.talents = [];
 
 // ---- CLIENT DATA ----
-VX.clients = [
-  {
-    id: 1, nombre: 'Fintech Solutions LATAM', sector: 'Fintech',
-    sede: 'Bogotá, Colombia & CDMX', zona: 'UTC-5', tier: 1,
-    estado: 'Activo', contrato: 'MSA Vigente (2024-2026)', pago: 'Net 30',
-    stakeholder: { nombre: 'Carolina Herrera', cargo: 'VP of Engineering', email: 'carolina.herrera@fintechlatam.io', telefono: '+57 300 123 4567' },
-    necesidades: 'Equipo de desarrollo para plataforma de pagos P2P. Buscan: 2 Senior .NET Backend, 1 DevOps Azure, 1 QA Automation.',
-    talentoAsignado: [2],
-    calls: [
-      { id: 1, fecha: '2026-09-10', hora: '10:00', plataforma: 'Teams', participantes: 'Carolina Herrera, Laura Méndez (VX)', link: 'https://teams.microsoft.com/l/meet/abc123', notas: 'Kickoff inicial. Confirmaron necesidad de 2 devs .NET para Q4. Presupuesto aprobado. Próxima call: demo de perfiles.' },
-      { id: 2, fecha: '2026-09-15', hora: '14:00', plataforma: 'Teams', participantes: 'Carolina Herrera, Rodrigo López, Laura Méndez (VX)', link: 'https://teams.microsoft.com/l/meet/def456', notas: 'Presentación de 3 perfiles. Aprobaron a Valentina Torres. Revisarán propuesta de Mateo Rivas. Respuesta esperada el viernes.' }
-    ]
-  },
-  {
-    id: 2, nombre: 'Global Logistics Corp', sector: 'Logística',
-    sede: 'Buenos Aires, Argentina & São Paulo, Brasil', zona: 'UTC-3', tier: 1,
-    estado: 'Activo', contrato: 'SOW por proyecto', pago: 'Net 45',
-    stakeholder: { nombre: 'Roberto Guzmán', cargo: 'CTO', email: 'roberto.guzman@globallogistics.com', telefono: '+54 11 9876 5432' },
-    necesidades: 'Migración de sistemas legacy a Azure. Buscan: 1 Cloud Architect, 1 DevOps Senior, 1 Integration Specialist.',
-    talentoAsignado: [3, 9],
-    calls: [
-      { id: 1, fecha: '2026-09-05', hora: '09:00', plataforma: 'Zoom', participantes: 'Roberto Guzmán, Ana Pérez (CIO), Laura Méndez (VX)', link: 'https://zoom.us/j/99887766', notas: 'Discovery de sistemas legacy. Tienen 12 aplicaciones on-premise a migrar. Timeline: 18 meses. Piden equipo estable de 3 personas.' }
-    ]
-  },
-  {
-    id: 3, nombre: 'HealthTech Innovations', sector: 'Healthcare IT',
-    sede: 'Santiago, Chile', zona: 'UTC-4', tier: 2,
-    estado: 'Activo', contrato: 'Tiempo y Materiales', pago: 'Net 30',
-    stakeholder: { nombre: 'Martina Ríos', cargo: 'Head of Product', email: 'mrios@healthtech.cl', telefono: '+56 2 9988 7766' },
-    necesidades: 'Rediseño de plataforma de telemedicina. Buscan: 1 UX/UI Senior, 1 React Developer, 1 Backend Python.',
-    talentoAsignado: [6],
-    calls: [
-      { id: 1, fecha: '2026-09-12', hora: '11:30', plataforma: 'Google Meet', participantes: 'Martina Ríos, Laura Méndez (VX)', link: 'https://meet.google.com/abc-defg-hij', notas: 'Revisión de mockups previos. Necesitan alguien con experiencia en accesibilidad (WCAG 2.1). Camila Restrepo es la candidata perfecta. Enviar propuesta esta semana.' }
-    ]
-  },
-  {
-    id: 4, nombre: 'EduTech Ventures', sector: 'EdTech',
-    sede: 'Ciudad de México', zona: 'UTC-6', tier: 2,
-    estado: 'En negociación', contrato: 'Por definir', pago: 'Por definir',
-    stakeholder: { nombre: 'Alejandro Mora', cargo: 'CEO & Founder', email: 'alejandro@edutech.mx', telefono: '+52 55 4444 3333' },
-    necesidades: 'MVP de plataforma e-learning con IA. Buscan: 1 AI/ML Engineer, 1 Full Stack Developer, 1 UX Designer.',
-    talentoAsignado: [],
-    calls: [
-      { id: 1, fecha: '2026-09-16', hora: '16:00', plataforma: 'Teams', participantes: 'Alejandro Mora, Laura Méndez (VX)', link: 'https://teams.microsoft.com/l/meet/ghi789', notas: 'Primera reunión. Startup en etapa seed con $500K de financiamiento. Quieren un MVP en 3 meses. Interesados en Tomás Ruiz para IA. Presupuesto limitado (~$40K).' }
-    ]
-  }
-];
+VX.clients = [];
 
 VX.filteredTalents = [...VX.talents];
 
@@ -375,6 +112,16 @@ function navigate(section) {
     }
   }
 
+  // Toggle sidebar client list visibility
+  const sidebarClientListSection = document.getElementById('sidebarClientListSection');
+  if (sidebarClientListSection) {
+    if (section === 'clientes') {
+      sidebarClientListSection.classList.remove('hidden');
+    } else {
+      sidebarClientListSection.classList.add('hidden');
+    }
+  }
+
   // Render section
   if (section === 'talentos') renderTalentos();
   if (section === 'clientes') renderClientes();
@@ -382,10 +129,16 @@ function navigate(section) {
   if (section === 'reportes') renderReportes();
 }
 
+// ---- HELPERS & UTILS ----
+function removeAccents(str) {
+  if (!str) return '';
+  return String(str).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 // ---- FILTERS ----
 function applyFilters() {
   const f = VX.filters;
-  const q = (VX.searchQuery || '').toLowerCase();
+  const q = removeAccents(VX.searchQuery || '');
 
   VX.filteredTalents = VX.talents.filter(t => {
     if (t.activo === false) return false;
@@ -393,24 +146,29 @@ function applyFilters() {
     const stackArr = Array.isArray(t.stack) ? t.stack : [];
     const certArr = Array.isArray(t.certificaciones) ? t.certificaciones : [];
 
-    // Text search
+    // Text search (accent insensitive)
     if (q) {
-      const searchable = `${t.nombre || ''} ${t.rol || ''} ${t.seniority || ''} ${stackArr.join(' ')} ${t.pais || ''} ${t.resumen || ''} ${certArr.join(' ')}`.toLowerCase();
+      const searchable = removeAccents(`${t.nombre || ''} ${t.rol || ''} ${t.seniority || ''} ${stackArr.join(' ')} ${t.pais || ''} ${t.resumen || ''} ${certArr.join(' ')}`);
       if (!searchable.includes(q)) return false;
     }
 
     // Stack
-    if (f.stack.length > 0 && !f.stack.some(s => stackArr.includes(s))) return false;
+    if (f.stack.length > 0) {
+      const normStack = stackArr.map(s => removeAccents(s));
+      if (!f.stack.some(s => normStack.includes(removeAccents(s)))) return false;
+    }
     // Inglés
-    if (f.ingles.length > 0 && !f.ingles.includes(t.ingles)) return false;
+    if (f.ingles.length > 0 && !f.ingles.some(i => removeAccents(i) === removeAccents(t.ingles))) return false;
     // Disponibilidad
-    if (f.disponibilidad.length > 0 && !f.disponibilidad.includes(t.disponibilidad)) return false;
+    if (f.disponibilidad.length > 0 && !f.disponibilidad.some(d => removeAccents(d) === removeAccents(t.disponibilidad))) return false;
     // Seniority
-    if (f.seniority.length > 0 && !f.seniority.includes(t.seniority)) return false;
+    if (f.seniority.length > 0 && !f.seniority.some(s => removeAccents(s) === removeAccents(t.seniority))) return false;
     // País
-    if (f.pais.length > 0 && !f.pais.includes(t.pais)) return false;
+    if (f.pais.length > 0 && !f.pais.some(p => removeAccents(p) === removeAccents(t.pais))) return false;
     // Tarifa
-    if (t.tarifa && (t.tarifa < f.tarifaMin || t.tarifa > f.tarifaMax)) return false;
+    if (t.tarifa !== undefined && t.tarifa !== null && Number(t.tarifa) > 0) {
+      if (Number(t.tarifa) < f.tarifaMin || Number(t.tarifa) > f.tarifaMax) return false;
+    }
 
     return true;
   });
@@ -442,10 +200,12 @@ function toggleFilter(type, value, el) {
 }
 
 function resetFilters() {
-  VX.filters = { stack: [], ingles: [], disponibilidad: [], seniority: [], pais: [], tarifaMin: 20, tarifaMax: 150 };
+  VX.filters = { stack: [], ingles: [], disponibilidad: [], seniority: [], pais: [], tarifaMin: 0, tarifaMax: 300 };
   VX.searchQuery = '';
   const searchEl = document.getElementById('semanticSearch');
   if (searchEl) searchEl.value = '';
+  const tarifaLabel = document.getElementById('tarifaLabel');
+  if (tarifaLabel) tarifaLabel.textContent = '$0 – $300';
   document.querySelectorAll('.filter-chip').forEach(el => {
     el.classList.remove('bg-[#E0F2FE]', 'border-[#0284C7]', 'text-[#0369A1]');
     el.classList.add('bg-surface-container', 'border-transparent', 'text-text-body');
@@ -491,7 +251,7 @@ function renderTalentGrid() {
   grid.innerHTML = VX.filteredTalents.map(t => {
     const status = getStatusBadge(t.disponibilidad);
     const matchColor = getMatchColor(t.match);
-    const isSelected = VX.selectedTalents.has(t.id);
+    const isSelected = VX.selectedTalents.has(String(t.id));
     const visibleStack = t.stack.slice(0, 3);
     const extraStack = t.stack.length - 3;
 
@@ -500,7 +260,7 @@ function renderTalentGrid() {
       <!-- Selection check -->
       <div class="px-4 pt-4 flex items-start justify-between gap-2">
         <label class="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectTalent(${t.id}, this)" class="w-4 h-4 rounded border-border-strong accent-primary"/>
+          <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectTalent('${t.id}', this)" class="w-4 h-4 rounded border-border-strong accent-primary"/>
           <span class="text-label-sm font-label text-text-muted">Añadir a propuesta</span>
         </label>
         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label-sm font-label font-bold ${matchColor}">
@@ -510,7 +270,7 @@ function renderTalentGrid() {
       </div>
 
       <!-- Avatar + info -->
-      <div class="px-4 pt-3 pb-2 flex items-start gap-3">
+      <div onclick="openTalentModal('${t.id}')" class="px-4 pt-3 pb-2 flex items-start gap-3 cursor-pointer group-hover:bg-surface-canvas/50 transition-colors" title="Ver ficha completa">
         <div class="relative shrink-0">
           <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[18px]">
             ${getInitials(t.nombre)}
@@ -518,7 +278,7 @@ function renderTalentGrid() {
           <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ${status.dot} ring-2 ring-surface-card"></span>
         </div>
         <div class="min-w-0 flex-1">
-          <h3 class="text-headline-sm font-sans font-bold text-text-heading truncate">${t.nombre}</h3>
+          <h3 class="text-headline-sm font-sans font-bold text-text-heading truncate group-hover:text-primary transition-colors">${t.nombre}</h3>
           <p class="text-body-sm font-sans text-text-muted truncate">${t.rol} · ${t.seniority}</p>
           <div class="flex items-center gap-2 mt-1">
             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label font-bold uppercase tracking-wider ${status.bg} ${status.text}">
@@ -554,9 +314,13 @@ function renderTalentGrid() {
 
       <!-- Actions -->
       <div class="px-4 py-3 flex items-center justify-between gap-2 bg-surface-canvas">
-        <button onclick="openTalentModal(${t.id})" class="flex-1 text-label-md font-label font-bold text-primary hover:text-primary/80 text-center py-1.5 rounded-lg hover:bg-surface-container-low transition-all">Ver Ficha</button>
+        <button onclick="openTalentModal('${t.id}')" class="flex-1 text-label-md font-label font-bold text-primary hover:text-primary/80 text-center py-1.5 rounded-lg hover:bg-surface-container-low transition-all">Ver Ficha</button>
         <div class="w-px h-5 bg-border-subtle"></div>
-        <button onclick="addTalentToProposal(${t.id})" class="flex-1 text-center py-1.5 px-3 rounded-lg bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all">+ Propuesta</button>
+        <button onclick="addTalentToProposal('${t.id}')" class="flex-1 text-center py-1.5 px-3 rounded-lg bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all">+ Propuesta</button>
+        <div class="w-px h-5 bg-border-subtle"></div>
+        <button onclick="event.stopPropagation(); deleteTalentDirectly('${t.id}')" title="Eliminar de Supabase" class="p-1.5 rounded-lg text-text-muted hover:text-error hover:bg-error-container/20 transition-all flex items-center justify-center">
+          <span class="material-symbols-outlined text-[18px]">delete</span>
+        </button>
       </div>
     </div>`;
   }).join('');
@@ -564,16 +328,16 @@ function renderTalentGrid() {
 
 function toggleSelectTalent(id, checkbox) {
   if (checkbox.checked) {
-    VX.selectedTalents.add(id);
+    VX.selectedTalents.add(String(id));
   } else {
-    VX.selectedTalents.delete(id);
+    VX.selectedTalents.delete(String(id));
   }
   updateSelectionBanner();
   renderTalentGrid();
 }
 
 function addTalentToProposal(id) {
-  VX.selectedTalents.add(id);
+  VX.selectedTalents.add(String(id));
   updateSelectionBanner();
   renderTalentGrid();
   showToast(`Talento añadido a propuesta (${VX.selectedTalents.size} seleccionados)`, 'success');
@@ -593,7 +357,7 @@ function updateSelectionBanner() {
 
 // ---- TALENT MODAL ----
 function openTalentModal(id) {
-  const t = VX.talents.find(x => x.id === id);
+  const t = VX.talents.find(x => String(x.id) === String(id));
   if (!t) return;
   const status = getStatusBadge(t.disponibilidad);
   const modal = document.getElementById('talentModal');
@@ -718,7 +482,7 @@ function openTalentModal(id) {
       <button onclick="addTalentToProposal(${t.id}); closeTalentModal();" class="flex-1 py-2.5 rounded-lg bg-primary-container text-on-primary-container text-label-lg font-label font-bold hover:bg-primary transition-all flex items-center justify-center gap-2">
         <span class="material-symbols-outlined text-[18px]">co_present</span>Agregar a Propuesta
       </button>
-      <button onclick="deleteTalentDirectly(${t.id})" class="px-4 py-2.5 rounded-lg bg-error-container text-error text-label-lg font-label font-bold hover:bg-error/20 transition-all flex items-center gap-1">
+      <button onclick="deleteTalentDirectly('${t.id}')" class="px-4 py-2.5 rounded-lg bg-error-container text-error text-label-lg font-label font-bold hover:bg-error/20 transition-all flex items-center gap-1">
         <span class="material-symbols-outlined text-[18px]">delete</span>Eliminar
       </button>
       <button onclick="closeTalentModal()" class="px-4 py-2.5 rounded-lg border border-border-strong text-text-heading text-label-lg font-label font-bold hover:bg-surface-container-low transition-all">Cerrar</button>
@@ -745,29 +509,76 @@ function renderClientes() {
   }
 }
 
+function renderClientes() {
+  renderClientList();
+  if (!VX.activeclientId && VX.clients.length > 0) {
+    VX.activeclientId = VX.clients[0].id;
+  }
+  if (VX.activeclientId) {
+    renderClientDetail(VX.activeclientId);
+  }
+}
+
 function renderClientList() {
-  const list = document.getElementById('clientList');
-  if (!list) return;
-  list.innerHTML = VX.clients.map(c => {
-    const active = VX.activeclientId === c.id;
-    const statusColor = { 'Activo': 'bg-status-available', 'En negociación': 'bg-status-interviewing', 'Inactivo': 'bg-status-placed' };
+  const mainList = document.getElementById('clientList');
+  const sidebarList = document.getElementById('sidebarClientList');
+
+  const html = VX.clients.map(c => {
+    const active = String(VX.activeclientId) === String(c.id);
+    const isCompleted = c.estado === 'Completed' || c.estado === 'Completado';
+    const statusColor = { 
+      'Activo': 'bg-status-available', 
+      'Completed': 'bg-status-available ring-2 ring-emerald-400',
+      'Completado': 'bg-status-available ring-2 ring-emerald-400',
+      'En negociación': 'bg-status-interviewing', 
+      'Inactivo': 'bg-status-placed' 
+    };
     return `
-    <button onclick="selectClient(${c.id})" class="w-full text-left px-3 py-3 rounded-xl border transition-all ${active ? 'bg-primary-container border-primary/30 shadow-sm' : 'bg-surface-card border-border-subtle hover:border-border-strong hover:shadow-sm'}">
+    <button onclick="selectClient('${c.id}')" class="w-full text-left px-3 py-2.5 rounded-xl border transition-all ${
+      active 
+        ? 'bg-primary-container text-on-primary-container border-primary/30 shadow-sm font-bold' 
+        : 'bg-surface-card border-border-subtle hover:border-border-strong text-text-heading hover:bg-surface-container-low'
+    }">
       <div class="flex items-start justify-between gap-2">
-        <div class="min-w-0">
-          <div class="text-label-lg font-label font-bold ${active ? 'text-on-primary-container' : 'text-text-heading'} truncate">${c.nombre}</div>
-          <div class="text-body-sm font-sans ${active ? 'text-on-primary-container/70' : 'text-text-muted'}">${c.sector} · Tier ${c.tier}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-label-md font-label truncate flex items-center gap-1.5 ${active ? 'text-on-primary-container' : 'text-text-heading'}">
+            ${c.nombre}
+            ${isCompleted ? '<span class="material-symbols-outlined text-[14px] text-emerald-400" title="Completed">verified</span>' : ''}
+          </div>
+          <div class="text-body-sm font-sans ${active ? 'text-on-primary-container/80' : 'text-text-muted'} truncate">${c.sector || 'Tech'} · Tier ${c.tier || 1}</div>
         </div>
-        <div class="flex items-center gap-1.5 shrink-0">
-          <span class="w-2 h-2 rounded-full ${statusColor[c.estado] || 'bg-secondary'}"></span>
-        </div>
+        <span class="w-2 h-2 rounded-full shrink-0 ${statusColor[c.estado] || 'bg-status-available'}"></span>
       </div>
-      <div class="mt-1.5 flex items-center gap-2">
-        <span class="text-[10px] font-label font-bold ${active ? 'text-on-primary-container/70' : 'text-text-muted'} uppercase tracking-wider">${c.talentoAsignado.length} recurso${c.talentoAsignado.length !== 1 ? 's' : ''}</span>
-        <span class="text-text-muted">·</span>
-        <span class="text-[10px] font-label font-bold ${active ? 'text-on-primary-container/70' : 'text-text-muted'} uppercase tracking-wider">${c.calls.length} call${c.calls.length !== 1 ? 's' : ''}</span>
+      <div class="mt-1 flex items-center gap-2">
+        <span class="text-[10px] font-label font-bold ${active ? 'text-on-primary-container/80' : 'text-text-muted'} uppercase tracking-wider">${c.talentoAsignado?.length || 0} recurso${c.talentoAsignado?.length !== 1 ? 's' : ''}</span>
+        <span class="opacity-50">·</span>
+        <span class="text-[10px] font-label font-bold ${active ? 'text-on-primary-container/80' : 'text-text-muted'} uppercase tracking-wider">${c.calls?.length || 0} call${c.calls?.length !== 1 ? 's' : ''}</span>
       </div>
     </button>`;
+  }).join('');
+
+  if (mainList) mainList.innerHTML = html;
+  if (sidebarList) sidebarList.innerHTML = html;
+  renderTopClientSelector();
+}
+
+function renderTopClientSelector() {
+  const container = document.getElementById('topClientSelector');
+  if (!container) return;
+  container.innerHTML = VX.clients.map(c => {
+    const active = String(VX.activeclientId) === String(c.id);
+    const isCompleted = c.estado === 'Completed' || c.estado === 'Completado';
+    return `
+      <button onclick="selectClient('${c.id}')" class="px-3 py-1.5 rounded-full text-label-md font-label font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+        active 
+          ? 'bg-primary text-on-primary shadow-md' 
+          : 'bg-surface-canvas text-text-heading hover:bg-surface-container border border-border-subtle hover:border-border-strong'
+      }">
+        <span class="w-2 h-2 rounded-full ${isCompleted ? 'bg-status-available' : (c.estado === 'Activo' ? 'bg-status-available' : 'bg-status-interviewing')}"></span>
+        ${c.nombre}
+        ${isCompleted ? '<span class="material-symbols-outlined text-[14px] text-emerald-300">verified</span>' : ''}
+      </button>
+    `;
   }).join('');
 }
 
@@ -777,36 +588,52 @@ function selectClient(id) {
   renderClientDetail(id);
 }
 
+function goToClient(id) {
+  navigate('clientes');
+  selectClient(id);
+}
+
+function removeFromProposal(id) {
+  const strId = String(id);
+  VX.selectedTalents.delete(strId);
+  VX.selectedTalents.delete(Number(id));
+  updateSelectionBanner();
+  renderPropuestas();
+  renderTalentGrid();
+  showToast('Perfil quitado de la propuesta', 'info');
+}
+
 function renderClientDetail(id) {
-  const c = VX.clients.find(x => x.id === id);
+  const c = VX.clients.find(x => String(x.id) === String(id));
   const detail = document.getElementById('clientDetail');
   if (!c || !detail) return;
 
-  const assignedTalents = VX.talents.filter(t => c.talentoAsignado.includes(t.id));
-  const statusColor = { 'Activo': '#10B981', 'En negociación': '#F59E0B', 'Inactivo': '#6366F1' };
+  const assignedTalents = VX.talents.filter(t => (c.talentoAsignado || []).map(String).includes(String(t.id)));
+  const isCompleted = c.estado === 'Completed' || c.estado === 'Completado';
+  const statusColor = { 'Activo': '#10B981', 'Completed': '#10B981', 'Completado': '#10B981', 'En negociación': '#F59E0B', 'Inactivo': '#6366F1' };
   const platformIcon = { 'Teams': 'videocam', 'Zoom': 'video_call', 'Google Meet': 'duo' };
 
   detail.innerHTML = `
     <!-- Client header -->
-    <div class="relative bg-surface-card rounded-xl p-6 shadow-sm mb-5 overflow-hidden">
+    <div class="relative bg-surface-card rounded-xl p-6 shadow-sm mb-5 overflow-hidden border border-border-subtle">
       <div class="absolute -right-12 -bottom-12 w-56 h-56 bg-gradient-to-br from-primary-container/10 to-transparent rounded-full pointer-events-none"></div>
       <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center relative z-10">
         <div class="md:col-span-5 flex items-start gap-4">
-          <div class="w-16 h-16 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-primary text-[32px]">account_balance</span>
+          <div class="w-16 h-16 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0 text-primary">
+            <span class="material-symbols-outlined text-[32px]">domain</span>
           </div>
           <div>
             <div class="flex items-center gap-2 mb-0.5">
               <h2 class="text-headline-md font-sans font-bold text-text-heading">${c.nombre}</h2>
-              <span class="px-2 py-0.5 rounded-full text-label-sm font-label font-semibold bg-surface-container text-primary">Tier ${c.tier}</span>
+              <span class="px-2 py-0.5 rounded-full text-label-sm font-label font-semibold bg-surface-container text-primary">Tier ${c.tier || 1}</span>
             </div>
-            <p class="text-body-sm font-sans text-text-muted">${c.sede} · ${c.zona}</p>
+            <p class="text-body-sm font-sans text-text-muted">${c.sede || 'LATAM'} · ${c.zona || 'UTC-3'}</p>
             <div class="flex items-center gap-3 mt-2">
               <span class="text-label-sm font-label text-text-muted flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px] text-status-available">verified</span>${c.contrato}
+                <span class="material-symbols-outlined text-[14px] text-status-available">verified</span>${c.contrato || 'MSA Vigente'}
               </span>
               <span class="text-label-sm font-label text-text-muted flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px] text-primary">schedule</span>${c.pago}
+                <span class="material-symbols-outlined text-[14px] text-primary">schedule</span>${c.pago || 'Net 30'}
               </span>
             </div>
           </div>
@@ -816,71 +643,200 @@ function renderClientDetail(id) {
           <div class="text-label-sm font-label text-text-muted uppercase tracking-wider mb-2">Stakeholder Principal</div>
           <div class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-secondary-container to-secondary-fixed-dim flex items-center justify-center text-on-secondary-fixed font-sans font-bold">
-              ${getInitials(c.stakeholder.nombre)}
+              ${getInitials(c.stakeholder?.nombre || 'S H')}
             </div>
             <div class="flex-1 min-w-0">
-              <div class="text-headline-sm font-sans font-bold text-text-heading truncate">${c.stakeholder.nombre}</div>
-              <div class="text-body-sm font-sans text-text-muted truncate">${c.stakeholder.cargo}</div>
+              <div class="text-headline-sm font-sans font-bold text-text-heading truncate">${c.stakeholder?.nombre || '-'}</div>
+              <div class="text-body-sm font-sans text-text-muted truncate">${c.stakeholder?.cargo || 'Contacto'}</div>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-              <a href="tel:${c.stakeholder.telefono}" class="w-8 h-8 rounded-lg bg-surface-card hover:bg-surface-container text-primary flex items-center justify-center transition-all shadow-sm" title="Llamar"><span class="material-symbols-outlined text-[18px]">phone_in_talk</span></a>
-              <a href="mailto:${c.stakeholder.email}" class="w-8 h-8 rounded-lg bg-surface-card hover:bg-surface-container text-primary flex items-center justify-center transition-all shadow-sm" title="Email"><span class="material-symbols-outlined text-[18px]">mail</span></a>
+              ${c.stakeholder?.telefono ? `<a href="tel:${c.stakeholder.telefono}" class="w-8 h-8 rounded-lg bg-surface-card hover:bg-surface-container text-primary flex items-center justify-center transition-all shadow-sm" title="Llamar"><span class="material-symbols-outlined text-[18px]">phone_in_talk</span></a>` : ''}
+              ${c.stakeholder?.email ? `<a href="mailto:${c.stakeholder.email}" class="w-8 h-8 rounded-lg bg-surface-card hover:bg-surface-container text-primary flex items-center justify-center transition-all shadow-sm" title="Email"><span class="material-symbols-outlined text-[18px]">mail</span></a>` : ''}
             </div>
           </div>
         </div>
 
         <div class="md:col-span-3 flex flex-col gap-2">
-          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-label-sm font-label font-bold self-start" style="background:${statusColor[c.estado]}20;color:${statusColor[c.estado]}">
-            <span class="w-2 h-2 rounded-full" style="background:${statusColor[c.estado]}"></span>${c.estado}
-          </span>
-          <button onclick="openNewClientModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-card border border-border-subtle text-text-heading text-label-md font-label font-bold hover:bg-surface-container-low transition-all shadow-sm">
-            <span class="material-symbols-outlined text-[16px] text-primary">edit</span>Editar cliente
-          </button>
-          <button onclick="deleteClientDirectly(${c.id})" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-error-container border border-error/20 text-error text-label-md font-label font-bold hover:bg-error/20 transition-all shadow-sm">
-            <span class="material-symbols-outlined text-[16px]">delete</span>Eliminar cliente
+          ${isCompleted ? `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-label-sm font-label font-bold bg-[#D1FAE5] text-[#065F46] self-start border border-[#A7F3D0]">
+              <span class="material-symbols-outlined text-[16px]">verified</span>Completed / Trabajo Confirmado
+            </span>
+          ` : `
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-label-sm font-label font-bold self-start" style="background:${statusColor[c.estado] || '#10B981'}20;color:${statusColor[c.estado] || '#10B981'}">
+              <span class="w-2 h-2 rounded-full" style="background:${statusColor[c.estado] || '#10B981'}"></span>${c.estado || 'Activo'}
+            </span>
+          `}
+          <div class="flex items-center gap-2 mt-1">
+            <button onclick="openNewClientModal('${c.id}')" class="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-surface-card border border-border-subtle text-text-heading text-label-md font-label font-bold hover:bg-surface-container-low transition-all shadow-sm">
+              <span class="material-symbols-outlined text-[16px] text-primary">edit</span>Editar
+            </button>
+            <button onclick="deleteClientDirectly('${c.id}')" class="flex items-center justify-center p-1.5 rounded-lg bg-error-container border border-error/20 text-error hover:bg-error/20 transition-all shadow-sm" title="Eliminar cliente">
+              <span class="material-symbols-outlined text-[18px]">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Implementación Requerida & Especificaciones -->
+    <div class="bg-surface-card rounded-xl p-6 shadow-sm mb-5 border border-border-subtle">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-[22px]">architecture</span>
+          <h3 class="text-headline-sm font-sans font-bold text-text-heading">Implementación Requerida & Requerimientos Técnicos</h3>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer text-label-sm font-label font-semibold text-text-heading bg-surface-canvas px-3 py-1.5 rounded-lg border border-border-subtle hover:bg-surface-container-low transition-all">
+          <input type="checkbox" id="editNecToggle_${c.id}" onchange="toggleInlineEdit('${c.id}', 'necesidades')" class="w-4 h-4 rounded text-primary border-border-strong focus:ring-primary">
+          <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-primary">edit_note</span>Habilitar edición</span>
+        </label>
+      </div>
+
+      <div id="viewNec_${c.id}" class="text-body-md font-sans text-text-body leading-relaxed whitespace-pre-wrap bg-surface-canvas p-4 rounded-xl border border-border-subtle min-h-[80px]">
+        ${c.necesidades || 'Sin requerimientos de implementación registrados. Habilitá edición para pegar las especificaciones del proyecto.'}
+      </div>
+
+      <div id="editNecBox_${c.id}" class="hidden flex flex-col gap-3">
+        <textarea id="textareaNec_${c.id}" class="w-full text-body-md font-sans text-text-heading bg-surface-canvas p-4 rounded-xl border border-primary focus:outline-none focus:ring-2 focus:ring-primary min-h-[140px]" placeholder="Escribí o pegá información de implementación...">${c.necesidades || ''}</textarea>
+        <div class="flex justify-end">
+          <button id="saveNecBtn_${c.id}" onclick="saveInlineClientField('${c.id}', 'necesidades')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-on-primary font-label text-label-md font-bold hover:bg-primary-fixed-variant transition-all shadow-md">
+            <span class="material-symbols-outlined text-[18px]">save</span>Guardar Cambios
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Needs -->
-    <div class="bg-surface-card rounded-xl p-5 shadow-sm mb-5">
-      <div class="flex items-center gap-2 mb-3">
-        <span class="material-symbols-outlined text-primary text-[20px]">checklist</span>
-        <h3 class="text-headline-sm font-sans font-bold text-text-heading">Necesidades & Requerimientos</h3>
+    <!-- Notas de Reunión & Ideas -->
+    <div class="bg-surface-card rounded-xl p-6 shadow-sm mb-5 border border-border-subtle">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-[22px]">notes</span>
+          <h3 class="text-headline-sm font-sans font-bold text-text-heading">Notas de Reuniones, Ideas & Acuerdos</h3>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer text-label-sm font-label font-semibold text-text-heading bg-surface-canvas px-3 py-1.5 rounded-lg border border-border-subtle hover:bg-surface-container-low transition-all">
+          <input type="checkbox" id="editNotasToggle_${c.id}" onchange="toggleInlineEdit('${c.id}', 'notas')" class="w-4 h-4 rounded text-primary border-border-strong focus:ring-primary">
+          <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-primary">edit_note</span>Habilitar edición</span>
+        </label>
       </div>
-      <p class="text-body-md font-sans text-text-body leading-relaxed">${c.necesidades}</p>
+
+      <div id="viewNotas_${c.id}" class="text-body-md font-sans text-text-body leading-relaxed whitespace-pre-wrap bg-surface-canvas p-4 rounded-xl border border-border-subtle min-h-[60px]">
+        ${c.notas || 'Sin notas adicionales. Habilitá edición para pegar resúmenes de llamadas, ideas del cliente o fragmentos.'}
+      </div>
+
+      <div id="editNotasBox_${c.id}" class="hidden flex flex-col gap-3">
+        <textarea id="textareaNotas_${c.id}" class="w-full text-body-md font-sans text-text-heading bg-surface-canvas p-4 rounded-xl border border-primary focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="Escribí o pegá notas de reuniones...">${c.notas || ''}</textarea>
+        <div class="flex justify-end">
+          <button id="saveNotasBtn_${c.id}" onclick="saveInlineClientField('${c.id}', 'notas')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-on-primary font-label text-label-md font-bold hover:bg-primary-fixed-variant transition-all shadow-md">
+            <span class="material-symbols-outlined text-[18px]">save</span>Guardar Cambios
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Propuesta del Cliente -->
+    <div class="bg-surface-card rounded-xl p-6 shadow-sm mb-5 border border-border-subtle">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-[22px]">description</span>
+          <h3 class="text-headline-sm font-sans font-bold text-text-heading">Propuesta para el Cliente</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="navigate('propuestas'); selectProposalClient('${c.id}');" class="px-3 py-1.5 rounded-lg bg-surface-container-high text-primary text-label-sm font-label font-bold hover:bg-surface-container transition-all flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">co_present</span>Ir a Propuestas Client-Ready
+          </button>
+          <label class="flex items-center gap-2 cursor-pointer text-label-sm font-label font-semibold text-text-heading bg-surface-canvas px-3 py-1.5 rounded-lg border border-border-subtle hover:bg-surface-container-low transition-all">
+            <input type="checkbox" id="editPropuestaTextoToggle_${c.id}" onchange="toggleInlineEdit('${c.id}', 'propuestaTexto')" class="w-4 h-4 rounded text-primary border-border-strong focus:ring-primary">
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-primary">edit_note</span>Habilitar edición</span>
+          </label>
+        </div>
+      </div>
+
+      <div id="viewPropuestaTexto_${c.id}" class="text-body-md font-sans text-text-body leading-relaxed whitespace-pre-wrap bg-surface-canvas p-4 rounded-xl border border-border-subtle min-h-[80px]">
+        ${c.propuestaTexto || 'Sin propuesta escrita aún. Habilitá edición para redactar o pegar el texto de la propuesta comercial/técnica.'}
+      </div>
+
+      <div id="editPropuestaTextoBox_${c.id}" class="hidden flex flex-col gap-3">
+        <textarea id="textareaPropuestaTexto_${c.id}" class="w-full text-body-md font-sans text-text-heading bg-surface-canvas p-4 rounded-xl border border-primary focus:outline-none focus:ring-2 focus:ring-primary min-h-[140px]" placeholder="Escribí o pegá la propuesta técnica o comercial...">${c.propuestaTexto || ''}</textarea>
+        <div class="flex justify-end">
+          <button id="savePropuestaTextoBtn_${c.id}" onclick="saveInlineClientField('${c.id}', 'propuestaTexto')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-on-primary font-label text-label-md font-bold hover:bg-primary-fixed-variant transition-all shadow-md">
+            <span class="material-symbols-outlined text-[18px]">save</span>Guardar Propuesta
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Archivos & Documentos Adjuntos -->
+    <div class="bg-surface-card rounded-xl p-6 shadow-sm mb-5 border border-border-subtle">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-[22px]">folder_open</span>
+          <h3 class="text-headline-sm font-sans font-bold text-text-heading">Archivos & Documentos Adjuntos</h3>
+          <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-label-sm font-label font-bold">${(c.archivos || []).length}</span>
+        </div>
+        <label class="cursor-pointer flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">upload_file</span>+ Subir Archivo
+          <input type="file" class="hidden" onchange="handleClientFileUpload('${c.id}', this)" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg"/>
+        </label>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        ${(!c.archivos || c.archivos.length === 0) ? `
+          <div class="text-center py-6 text-text-muted text-body-sm bg-surface-canvas rounded-xl border border-dashed border-border-subtle">
+            No hay archivos subidos aún para este cliente. Adjuntá propuestas en PDF, contratos o especificaciones requeridas.
+          </div>` :
+          c.archivos.map(f => `
+            <div class="flex items-center justify-between p-3 rounded-xl bg-surface-canvas border border-border-subtle hover:border-primary/40 transition-all">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-lg bg-surface-container-high text-primary flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[20px]">${f.nombre.endsWith('.pdf') ? 'picture_as_pdf' : 'description'}</span>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-label-md font-label font-bold text-text-heading truncate">${f.nombre}</div>
+                  <div class="text-body-sm font-sans text-text-muted">${f.size || ''} · Subido ${f.fecha || 'Recientemente'}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                ${f.url ? `<a href="${f.url}" target="_blank" class="px-2.5 py-1 rounded-lg bg-surface-card text-primary border border-border-subtle hover:bg-surface-container text-label-sm font-label font-bold flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[16px]">download</span>Abrir
+                </a>` : ''}
+                <button onclick="deleteClientFile('${c.id}', '${f.id}')" class="p-1 rounded-lg text-text-muted hover:text-error hover:bg-error-container transition-all" title="Eliminar archivo">
+                  <span class="material-symbols-outlined text-[18px]">delete</span>
+                </button>
+              </div>
+            </div>
+          `).join('')
+        }
+      </div>
     </div>
 
     <!-- Assigned resources -->
-    <div class="bg-surface-card rounded-xl p-5 shadow-sm mb-5">
+    <div class="bg-surface-card rounded-xl p-5 shadow-sm mb-5 border border-border-subtle">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-primary text-[20px]">group</span>
           <h3 class="text-headline-sm font-sans font-bold text-text-heading">Recursos Asignados</h3>
           <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-label-sm font-label font-bold">${assignedTalents.length}</span>
         </div>
-        <button onclick="openAssignModal(${c.id})" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all">
+        <button onclick="openAssignModal('${c.id}')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all">
           <span class="material-symbols-outlined text-[16px]">person_add</span>Asignar Recurso
         </button>
       </div>
       ${assignedTalents.length === 0 ? `
         <div class="flex flex-col items-center py-8 text-center">
           <span class="material-symbols-outlined text-[48px] text-text-muted/30 mb-2">person_search</span>
-          <p class="text-body-md font-sans text-text-muted">Sin recursos asignados. <button onclick="openAssignModal(${c.id})" class="text-primary hover:underline font-bold">Asignar uno</button></p>
+          <p class="text-body-md font-sans text-text-muted">Sin recursos asignados. <button onclick="openAssignModal('${c.id}')" class="text-primary hover:underline font-bold">Asignar uno</button></p>
         </div>` :
         `<div class="flex flex-col gap-3">
           ${assignedTalents.map(t => {
             const status = getStatusBadge(t.disponibilidad);
-            return `<div class="flex items-center gap-3 p-3 rounded-xl bg-surface-canvas border border-border-subtle">
-              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[14px] shrink-0">${getInitials(t.nombre)}</div>
-              <div class="flex-1 min-w-0">
-                <div class="text-label-lg font-label font-bold text-text-heading truncate">${t.nombre}</div>
+            return `<div class="flex items-center gap-3 p-3 rounded-xl bg-surface-canvas border border-border-subtle hover:border-primary/50 transition-all">
+              <div onclick="openTalentModal('${t.id}')" class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[14px] shrink-0 cursor-pointer hover:opacity-90 transition-all" title="Ver ficha">${getInitials(t.nombre)}</div>
+              <div onclick="openTalentModal('${t.id}')" class="flex-1 min-w-0 cursor-pointer" title="Ver ficha">
+                <div class="text-label-lg font-label font-bold text-text-heading truncate hover:text-primary transition-colors">${t.nombre}</div>
                 <div class="text-body-sm font-sans text-text-muted">${t.rol} · ${t.asignacion?.horas || 40}h/semana</div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label font-bold bg-[#EEF2FF] text-[#3730A3]"><span class="w-1.5 h-1.5 rounded-full bg-status-placed"></span>Asignado</span>
-                <button onclick="unassignTalent(${c.id}, ${t.id})" class="w-7 h-7 rounded-lg text-text-muted hover:text-error hover:bg-error-container transition-all flex items-center justify-center" title="Desasignar"><span class="material-symbols-outlined text-[16px]">person_remove</span></button>
+                <button onclick="openTalentModal('${t.id}')" class="px-2.5 py-1 rounded-lg text-label-sm font-label font-bold text-primary bg-surface-card hover:bg-surface-container border border-border-subtle transition-all" title="Ver ficha">Ver Ficha</button>
+                <button onclick="unassignTalent('${c.id}', '${t.id}')" class="w-7 h-7 rounded-lg text-text-muted hover:text-error hover:bg-error-container transition-all flex items-center justify-center" title="Desasignar"><span class="material-symbols-outlined text-[16px]">person_remove</span></button>
               </div>
             </div>`;
           }).join('')}
@@ -888,44 +844,59 @@ function renderClientDetail(id) {
     </div>
 
     <!-- Calls log -->
-    <div class="bg-surface-card rounded-xl p-5 shadow-sm">
+    <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-primary text-[20px]">videocam</span>
           <h3 class="text-headline-sm font-sans font-bold text-text-heading">Bitácora de Calls</h3>
-          <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-label-sm font-label font-bold">${c.calls.length}</span>
+          <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-label-sm font-label font-bold">${c.calls?.length || 0}</span>
         </div>
-        <button onclick="openNewCallModal(${c.id})" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-canvas border border-border-subtle text-text-heading text-label-md font-label font-bold hover:bg-surface-container-low transition-all shadow-sm">
+        <button onclick="openNewCallModal('${c.id}')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-canvas border border-border-subtle text-text-heading text-label-md font-label font-bold hover:bg-surface-container-low transition-all shadow-sm">
           <span class="material-symbols-outlined text-[16px] text-primary">add</span>Nueva Call
         </button>
       </div>
       <div class="flex flex-col gap-4">
-        ${c.calls.map((call, i) => `
-        <div class="relative flex gap-4">
-          <div class="flex flex-col items-center">
-            <div class="w-9 h-9 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-primary text-[18px]">${platformIcon[call.plataforma] || 'videocam'}</span>
-            </div>
-            ${i < c.calls.length - 1 ? '<div class="flex-1 w-px bg-border-subtle mt-2 ml-0.5"></div>' : ''}
-          </div>
-          <div class="flex-1 pb-4">
-            <div class="flex items-start justify-between gap-2 mb-2">
-              <div>
-                <div class="flex items-center gap-2">
-                  <span class="text-label-lg font-label font-bold text-text-heading">${call.plataforma}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-surface-container text-text-muted text-[10px] font-label font-semibold uppercase tracking-wider">${call.fecha} · ${call.hora}</span>
-                </div>
-                <div class="text-body-sm font-sans text-text-muted mt-0.5">${call.participantes}</div>
+        ${(!c.calls || c.calls.length === 0) ? `
+          <div class="text-center py-6 text-text-muted text-body-sm bg-surface-canvas rounded-xl border border-dashed border-border-subtle">
+            Sin llamadas registradas. Registrá reuniones con clientes e incluí la transcripción de las mismas.
+          </div>` :
+          c.calls.map((call, i) => `
+          <div class="relative flex gap-4">
+            <div class="flex flex-col items-center">
+              <div class="w-9 h-9 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-primary text-[18px]">${platformIcon[call.plataforma] || 'videocam'}</span>
               </div>
-              ${call.link ? `<a href="${call.link}" target="_blank" class="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary-container text-on-primary-container text-label-sm font-label font-bold hover:bg-primary transition-all">
-                <span class="material-symbols-outlined text-[14px]">open_in_new</span>Grabación
-              </a>` : ''}
+              ${i < c.calls.length - 1 ? '<div class="flex-1 w-px bg-border-subtle mt-2 ml-0.5"></div>' : ''}
             </div>
-            <div class="p-3 rounded-xl bg-surface-canvas border border-border-subtle">
-              <p class="text-body-sm font-sans text-text-body leading-relaxed">${call.notas}</p>
+            <div class="flex-1 pb-4">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-label-lg font-label font-bold text-text-heading">${call.plataforma}</span>
+                    <span class="px-2 py-0.5 rounded-full bg-surface-container text-text-muted text-[10px] font-label font-semibold uppercase tracking-wider">${call.fecha} · ${call.hora}</span>
+                  </div>
+                  <div class="text-body-sm font-sans text-text-muted mt-0.5">${call.participantes}</div>
+                </div>
+                ${call.link ? `<a href="${call.link}" target="_blank" class="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary-container text-on-primary-container text-label-sm font-label font-bold hover:bg-primary transition-all">
+                  <span class="material-symbols-outlined text-[14px]">open_in_new</span>Grabación
+                </a>` : ''}
+              </div>
+              <div class="p-3 rounded-xl bg-surface-canvas border border-border-subtle">
+                <p class="text-body-sm font-sans text-text-body leading-relaxed">${call.notas}</p>
+                ${call.transcripcion ? `
+                  <details class="mt-2 text-body-sm">
+                    <summary class="font-label font-bold text-primary cursor-pointer flex items-center gap-1 select-none py-1">
+                      <span class="material-symbols-outlined text-[16px]">description</span>Ver Transcripción Completa
+                    </summary>
+                    <div class="mt-2 text-text-body font-sans leading-relaxed whitespace-pre-wrap p-3 rounded-lg bg-surface-card border border-border-subtle">
+                      ${call.transcripcion}
+                    </div>
+                  </details>
+                ` : ''}
+              </div>
             </div>
-          </div>
-        </div>`).join('')}
+          </div>`).join('')
+        }
       </div>
     </div>
   `;
@@ -993,68 +964,114 @@ function unassignTalent(clientId, talentId) {
 function openNewCallModal(clientId) {
   const modal = document.getElementById('callModal');
   const content = document.getElementById('callModalContent');
+  if (!modal || !content) return;
   const today = new Date().toISOString().split('T')[0];
   const now = new Date().toTimeString().slice(0, 5);
 
   content.innerHTML = `
-    <div class="flex items-center justify-between mb-5">
-      <h3 class="text-headline-sm font-sans font-bold text-text-heading">Registrar Nueva Call</h3>
-      <button onclick="document.getElementById('callModal').classList.add('hidden')" class="p-1.5 rounded-lg text-text-muted hover:bg-surface-container transition-all"><span class="material-symbols-outlined text-[20px]">close</span></button>
+    <div class="flex items-center justify-between mb-4 pb-3 border-b border-border-subtle">
+      <h3 class="text-headline-sm font-sans font-bold text-text-heading flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">videocam</span>Registrar Nueva Call
+      </h3>
+      <button onclick="document.getElementById('callModal').classList.add('hidden')" class="p-1 rounded-lg text-text-muted hover:text-text-heading">
+        <span class="material-symbols-outlined">close</span>
+      </button>
     </div>
     <div class="flex flex-col gap-4">
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Fecha</label>
-          <input type="date" id="callFecha" value="${today}" class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,120,212,0.15)]"/>
+          <label class="text-label-sm font-label font-bold text-text-heading mb-1 block">Fecha</label>
+          <input type="date" id="callFecha" value="${today}" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
         </div>
         <div>
-          <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Hora</label>
-          <input type="time" id="callHora" value="${now}" class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,120,212,0.15)]"/>
+          <label class="text-label-sm font-label font-bold text-text-heading mb-1 block">Hora</label>
+          <input type="time" id="callHora" value="${now}" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-label-sm font-label font-bold text-text-heading mb-1 block">Plataforma</label>
+          <select id="callPlataforma" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary">
+            <option>Teams</option><option>Zoom</option><option>Google Meet</option><option>Otra</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-label-sm font-label font-bold text-text-heading mb-1 block">Participantes</label>
+          <input type="text" id="callParticipantes" placeholder="ej: Juan Pérez (Cliente), Ana (VX)" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
         </div>
       </div>
       <div>
-        <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Plataforma</label>
-        <select id="callPlataforma" class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,120,212,0.15)]">
-          <option>Teams</option><option>Zoom</option><option>Google Meet</option><option>Otra</option>
-        </select>
+        <label class="text-label-sm font-label font-bold text-text-heading mb-1 block">Link a grabación (opcional)</label>
+        <input type="url" id="callLink" placeholder="https://teams.microsoft.com/..." class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
       </div>
       <div>
-        <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Participantes</label>
-        <input type="text" id="callParticipantes" placeholder="ej: Carolina Herrera, Laura Méndez (VX)" class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,120,212,0.15)]"/>
+        <div class="flex items-center justify-between mb-1">
+          <label class="text-label-sm font-label font-bold text-text-heading block">Transcripción Completa de la Call</label>
+          <button onclick="aiSummarizeCallTranscript()" type="button" class="text-label-sm font-label text-primary font-bold hover:underline flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">auto_awesome</span>Extraer Resumen con IA
+          </button>
+        </div>
+        <textarea id="callTranscripcion" rows="4" placeholder="Pegá la transcripción completa de la llamada aquí..." class="w-full p-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary resize-y mb-2"></textarea>
       </div>
       <div>
-        <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Link a grabación (opcional)</label>
-        <input type="url" id="callLink" placeholder="https://teams.microsoft.com/..." class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,120,212,0.15)]"/>
+        <label class="text-label-sm font-label font-bold text-text-heading mb-1 block">Notas / Resumen Ejecutivo</label>
+        <textarea id="callNotas" rows="3" placeholder="Resumen de acuerdos, requerimientos solicitados y próximos pasos..." class="w-full p-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary resize-y"></textarea>
       </div>
-      <div>
-        <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Notas / Resumen</label>
-        <textarea id="callNotas" rows="4" placeholder="Resumen de lo hablado, acuerdos, próximos pasos..." class="w-full px-3 py-2 rounded-lg border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,120,212,0.15)] resize-none"></textarea>
-      </div>
-      <div class="flex gap-3">
-        <button onclick="saveCall(${clientId})" class="flex-1 py-2.5 rounded-lg bg-primary-container text-on-primary-container text-label-lg font-label font-bold hover:bg-primary transition-all">Guardar Call</button>
-        <button onclick="document.getElementById('callModal').classList.add('hidden')" class="px-4 py-2.5 rounded-lg border border-border-strong text-text-heading text-label-lg font-label font-bold hover:bg-surface-container-low transition-all">Cancelar</button>
+      <div class="flex justify-end gap-2 pt-3 border-t border-border-subtle">
+        <button type="button" onclick="document.getElementById('callModal').classList.add('hidden')" class="px-4 py-2.5 rounded-xl border border-border-strong text-text-heading text-label-md font-label font-bold hover:bg-surface-container-low">Cancelar</button>
+        <button type="button" onclick="saveCall('${clientId}')" class="px-5 py-2.5 rounded-xl bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all flex items-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">save</span>Guardar Call
+        </button>
       </div>
     </div>
   `;
   modal.classList.remove('hidden');
 }
 
-function saveCall(clientId) {
-  const c = VX.clients.find(x => x.id === clientId);
+function aiSummarizeCallTranscript() {
+  const tr = document.getElementById('callTranscripcion')?.value || '';
+  const notesEl = document.getElementById('callNotas');
+  if (!tr.trim()) {
+    showToast('Pegá primero una transcripción para resumir', 'info');
+    return;
+  }
+  const lines = tr.split('\n').map(l => l.trim()).filter(Boolean);
+  let summary = `📌 Resumen de la Call (IA):\n`;
+  summary += `• ${lines[0] || 'Reunión de alineación de proyecto.'}\n`;
+  if (lines.length > 2) {
+    summary += `• Temas claves: ${lines.slice(1, 4).join(' / ').slice(0, 140)}...\n`;
+  }
+  summary += `• Próximos pasos: Definir propuesta técnica y asignación de recursos.`;
+
+  if (notesEl) notesEl.value = summary;
+  showToast('Resumen generado desde la transcripción ✨', 'success');
+}
+
+async function saveCall(clientId) {
+  const c = VX.clients.find(x => String(x.id) === String(clientId));
   if (!c) return;
   const call = {
     id: Date.now(),
-    fecha: document.getElementById('callFecha').value,
-    hora: document.getElementById('callHora').value,
-    plataforma: document.getElementById('callPlataforma').value,
-    participantes: document.getElementById('callParticipantes').value || 'Sin especificar',
-    link: document.getElementById('callLink').value || null,
-    notas: document.getElementById('callNotas').value || 'Sin notas.'
+    fecha: document.getElementById('callFecha')?.value || new Date().toISOString().split('T')[0],
+    hora: document.getElementById('callHora')?.value || '12:00',
+    plataforma: document.getElementById('callPlataforma')?.value || 'Teams',
+    participantes: document.getElementById('callParticipantes')?.value || 'Sin especificar',
+    link: document.getElementById('callLink')?.value || null,
+    transcripcion: document.getElementById('callTranscripcion')?.value || '',
+    notas: document.getElementById('callNotas')?.value || 'Sin notas.'
   };
+  c.calls = c.calls || [];
   c.calls.unshift(call);
+
+  if (supabaseClient && c.id) {
+    const dbId = isNaN(Number(c.id)) ? c.id : Number(c.id);
+    await supabaseClient.from('clients').update({ calls: c.calls }).eq('id', dbId);
+  }
+
   document.getElementById('callModal').classList.add('hidden');
   renderClientDetail(clientId);
-  showToast('Call registrada correctamente', 'success');
+  renderClientList();
+  showToast('Call registrada correctamente ✓', 'success');
 }
 
 function openNewClientModal() {
@@ -1164,28 +1181,52 @@ function fillRealDataFromCV(rawText, filename) {
   }
 }
 
-function parseCVContent(text, filename) {
-  let cleanFileName = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").replace(/\b(cv|resume|curriculum|vitae)\b/gi, "").trim();
-  cleanFileName = cleanFileName.replace(/\s+/g, " ");
-  if (cleanFileName.length > 2) {
-    cleanFileName = cleanFileName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
-  } else {
-    cleanFileName = "Candidato IT";
+function cleanPersonName(rawStr) {
+  if (!rawStr) return "Candidato IT";
+  let str = rawStr
+    .replace(/\.[^/.]+$/, "") // Eliminar extensiones (.pdf, .docx)
+    .replace(/\(\d+\)/g, "")  // Eliminar sufijos de copia (1), (2)
+    .replace(/[-_]/g, " ")     // Guiones a espacios
+    .replace(/\b(cv|resume|curriculum|vitae|v\d+|\d+)\b/gi, "") // Remover palabras clave y números aislados
+    .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, " ") // Remover caracteres especiales
+    .replace(/\s+/g, " ")
+    .trim();
+  if (str.length > 2) {
+    return str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
   }
+  return "Candidato IT";
+}
+
+function normalizeCountry(rawText) {
+  if (!rawText) return "Argentina";
+  const t = rawText.toLowerCase();
+
+  if (/\b(arg|argentina|argentino|argentina|bs as|buenos aires|caba)\b/i.test(t)) return "Argentina";
+  if (/\b(col|colombia|colombiano|bogota|medellin)\b/i.test(t)) return "Colombia";
+  if (/\b(mex|méxico|mexico|mexicano|cdmx|guadalajara)\b/i.test(t)) return "México";
+  if (/\b(cl|chile|chileno|santiago)\b/i.test(t)) return "Chile";
+  if (/\b(uy|uruguay|uruguayo|montevideo)\b/i.test(t)) return "Uruguay";
+  if (/\b(pe|perú|peru|peruano|lima)\b/i.test(t)) return "Perú";
+  return "Argentina";
+}
+
+function parseCVContent(text, filename) {
+  let cleanFileName = cleanPersonName(filename || '');
 
   const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-  const email = emailMatch ? emailMatch[0] : `${cleanFileName.toLowerCase().replace(/\s+/g, '.')}@gmail.com`;
+  const email = emailMatch ? emailMatch[0] : "";
 
   const phoneMatch = text.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/);
   const telefono = phoneMatch ? phoneMatch[0] : "";
 
   const linkedinMatch = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
-  const linkedin = linkedinMatch ? linkedinMatch[0].replace(/^https?:\/\//, '') : `linkedin.com/in/${cleanFileName.toLowerCase().replace(/\s+/g, '-')}`;
+  const linkedin = linkedinMatch ? linkedinMatch[0].replace(/^https?:\/\//, '') : "";
 
   let nombre = cleanFileName;
   const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 2 && !l.includes("@") && !l.toLowerCase().includes("curriculum"));
   if (lines.length > 0 && lines[0].length < 40 && !/\d/.test(lines[0])) {
-    nombre = lines[0];
+    const candidateName = cleanPersonName(lines[0]);
+    if (candidateName !== "Candidato IT") nombre = candidateName;
   }
 
   const knownTechs = [
@@ -1233,14 +1274,7 @@ function parseCVContent(text, filename) {
   const expMatch = text.match(/(\d{1,2})\s*(?:\+)?\s*(?:años|years|yrs)/i);
   const experiencia = expMatch ? parseFloat(expMatch[1]) : 5;
 
-  const countries = ['Argentina', 'Colombia', 'México', 'Chile', 'Uruguay', 'Perú'];
-  let pais = "Argentina";
-  for (const c of countries) {
-    if (new RegExp(`\\b${c}\\b`, 'i').test(text)) {
-      pais = c;
-      break;
-    }
-  }
+  const pais = normalizeCountry(text);
 
   let ingles = "C1";
   if (/c2|native|nativo/i.test(text)) ingles = "C2";
@@ -1315,6 +1349,16 @@ async function confirmCVAndAdd() {
   const senioryVal = document.getElementById('parsedSeniority')?.value || 'Senior';
   const resumen = document.getElementById('parsedResumen')?.value?.trim() || 'Perfil cargado en Talent Hub.';
 
+  // High rate warning check
+  if (tarifa >= 150) {
+    showToast(`⚠️ Advertencia: Tarifa elevada detectada ($${tarifa} USD/h). Se guardará normalmente en Supabase.`, 'info');
+    if (tarifa > VX.filters.tarifaMax) {
+      VX.filters.tarifaMax = tarifa;
+      const tLabel = document.getElementById('tarifaLabel');
+      if (tLabel) tLabel.textContent = `$0 – $${tarifa}`;
+    }
+  }
+
   // Collect skills
   const skillEls = document.querySelectorAll('#parsedSkillsContainer span');
   const skills = [];
@@ -1380,146 +1424,220 @@ async function confirmCVAndAdd() {
   navigate('talentos');
 }
 
-// ---- PROPOSALS ----
+// ---- PROPOSALS CLIENT-READY ----
+function selectProposalClient(clientId) {
+  VX.activeclientId = clientId;
+  renderPropuestas();
+}
+
 function renderPropuestas() {
   const section = document.getElementById('section-propuestas');
   if (!section) return;
 
-  const selected = VX.talents.filter(t => VX.selectedTalents.has(t.id));
-
   const content = section.querySelector('.proposals-content');
   if (!content) return;
 
-  if (selected.length === 0) {
+  if (VX.clients.length === 0) {
     content.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-24 text-center">
-        <span class="material-symbols-outlined text-[80px] text-text-muted/30 mb-4">co_present</span>
-        <h3 class="text-headline-lg font-sans font-bold text-text-heading mb-2">Sin talentos seleccionados</h3>
-        <p class="text-body-md font-sans text-text-muted mb-5 max-w-sm">Andá a "Talentos & Match" y seleccioná los perfiles que querés incluir en la propuesta.</p>
-        <button onclick="navigate('talentos')" class="px-5 py-2.5 rounded-lg bg-primary-container text-on-primary-container text-label-lg font-label font-bold hover:bg-primary transition-all flex items-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">group</span>Ir al Directorio
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <span class="material-symbols-outlined text-[64px] text-text-muted/30 mb-3">domain</span>
+        <h3 class="text-headline-lg font-sans font-bold text-text-heading mb-2">No hay clientes registrados</h3>
+        <p class="text-body-md font-sans text-text-muted mb-4 max-w-sm">Creá primero un cliente para asociarle perfiles y armar su propuesta.</p>
+        <button onclick="openNewClientModal()" class="px-4 py-2 rounded-xl bg-primary-container text-on-primary-container text-label-md font-label font-bold">
+          + Crear Cliente
         </button>
       </div>`;
     return;
   }
 
+  const activeClient = VX.clients.find(x => String(x.id) === String(VX.activeclientId)) || VX.clients[0];
+  VX.activeclientId = activeClient.id;
+
+  // Selected talents for this client proposal (or from global selected set)
+  const assignedTalents = VX.talents.filter(t => (activeClient.talentoAsignado || []).map(String).includes(String(t.id)));
+  const globalSelected = VX.talents.filter(t => VX.selectedTalents.has(String(t.id)));
+  
+  // Combine unique talents
+  const combinedTalentsMap = new Map();
+  [...assignedTalents, ...globalSelected].forEach(t => combinedTalentsMap.set(String(t.id), t));
+  const activeTalents = Array.from(combinedTalentsMap.values());
+
+  const isCompleted = activeClient.estado === 'Completed' || activeClient.estado === 'Completado';
+
   content.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <!-- Config panel -->
-      <div class="lg:col-span-4 flex flex-col gap-4">
+      <!-- Config Panel -->
+      <div class="lg:col-span-5 flex flex-col gap-4">
+        <!-- Client & Proposal Settings -->
         <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
-          <h3 class="text-headline-sm font-sans font-bold text-text-heading mb-4">Configurar Propuesta</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-headline-sm font-sans font-bold text-text-heading flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">co_present</span>Armar Propuesta Client-Ready
+            </h3>
+            ${isCompleted ? `
+              <span class="px-2.5 py-0.5 rounded-full text-label-sm font-label font-bold bg-[#D1FAE5] text-[#065F46] flex items-center gap-1 border border-[#A7F3D0]">
+                <span class="material-symbols-outlined text-[14px]">verified</span>Completed
+              </span>` : ''}
+          </div>
+
           <div class="flex flex-col gap-4">
+            <!-- Client selector -->
             <div>
-              <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Cliente destino</label>
-              <select id="propClienteId" class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary">
-                ${VX.clients.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('')}
-                <option value="0">Otro / Por definir</option>
+              <label class="text-label-sm font-label font-bold text-text-heading mb-1 block">Seleccionar Cliente B2B</label>
+              <select id="proposalClientSelect" onchange="selectProposalClient(this.value)" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary font-bold">
+                ${VX.clients.map(c => `
+                  <option value="${c.id}" ${String(c.id) === String(activeClient.id) ? 'selected' : ''}>
+                    ${c.nombre} ${c.estado === 'Completed' ? '✓ (Completed)' : ''}
+                  </option>
+                `).join('')}
               </select>
             </div>
+
+            <!-- Proposal Title -->
             <div>
-              <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Título de la propuesta</label>
-              <input type="text" id="propTitulo" value="Propuesta de Perfiles IT — Virtual Xpert" class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,120,212,0.15)]"/>
+              <label class="text-label-sm font-label font-bold text-text-heading mb-1 block">Nombre / Título de la Propuesta</label>
+              <input type="text" id="propTitulo" value="Propuesta de Perfiles IT para ${activeClient.nombre}" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary" oninput="document.getElementById('previewTitulo').textContent = this.value"/>
             </div>
+
+            <!-- Proposal Text -->
             <div>
-              <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Modo de exportación</label>
-              <div class="flex flex-col gap-2">
-                <label class="flex items-center gap-3 p-3 rounded-xl border border-border-subtle cursor-pointer hover:bg-surface-container-low transition-all">
-                  <input type="radio" name="propMode" value="completo" checked class="accent-primary"/> 
-                  <div><div class="text-label-lg font-label font-bold text-text-heading">Con nombre y foto</div><div class="text-body-sm font-sans text-text-muted">Propuesta completa con datos del perfil</div></div>
-                </label>
-                <label class="flex items-center gap-3 p-3 rounded-xl border border-border-subtle cursor-pointer hover:bg-surface-container-low transition-all">
-                  <input type="radio" name="propMode" value="anonimo" class="accent-primary"/>
-                  <div><div class="text-label-lg font-label font-bold text-text-heading">Anónimo (White Label)</div><div class="text-body-sm font-sans text-text-muted">Perfil sin nombre, solo skills y experiencia</div></div>
-                </label>
-              </div>
+              <label class="text-label-sm font-label font-bold text-text-heading mb-1 block">Texto / Especificación de la Propuesta</label>
+              <textarea id="propTextoArea" rows="5" placeholder="Escribí o pegá aquí los detalles de la propuesta comercial/técnica..." class="w-full p-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary resize-y" oninput="activeClient.propuestaTexto = this.value; document.getElementById('previewPropTexto').textContent = this.value;">${activeClient.propuestaTexto || activeClient.necesidades || ''}</textarea>
             </div>
-            <div class="flex flex-col gap-2">
-              <button onclick="exportPDF()" class="w-full py-2.5 rounded-lg bg-primary-container text-on-primary-container text-label-lg font-label font-bold hover:bg-primary transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>Exportar PDF
+
+            <!-- Action buttons -->
+            <div class="flex flex-col gap-2 pt-2 border-t border-border-subtle">
+              <button onclick="exportPDF()" class="w-full py-3 rounded-xl bg-primary-container text-on-primary-container text-label-lg font-label font-bold hover:bg-primary transition-all flex items-center justify-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>Exportar PDF Client-Ready
               </button>
-              <button onclick="copyProposalLink()" class="w-full py-2.5 rounded-lg border border-border-strong text-text-heading text-label-lg font-label font-bold hover:bg-surface-container-low transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px] text-primary">link</span>Copiar Enlace
+              
+              <button onclick="markClientCompleted('${activeClient.id}')" class="w-full py-3 rounded-xl bg-[#065F46] text-white text-label-lg font-label font-bold hover:bg-[#044E39] transition-all flex items-center justify-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">check_circle</span>Confirmar Trabajo & Marcar COMPLETADO
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Selected list -->
+        <!-- Resources Selection -->
         <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
           <div class="flex items-center justify-between mb-3">
-            <h4 class="text-label-lg font-label font-bold text-text-heading">Perfiles (${selected.length})</h4>
-            <button onclick="VX.selectedTalents.clear(); renderPropuestas();" class="text-label-sm font-label text-error hover:underline">Limpiar todo</button>
+            <h4 class="text-label-lg font-label font-bold text-text-heading flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-primary text-[18px]">group</span>Recursos para la Propuesta (${activeTalents.length})
+            </h4>
+            <button onclick="openAssignModal('${activeClient.id}')" class="text-label-sm font-label text-primary font-bold hover:underline">+ Agregar Recurso</button>
           </div>
-          <div class="flex flex-col gap-2">
-            ${selected.map(t => `
-              <div class="flex items-center gap-2 p-2 rounded-lg bg-surface-canvas border border-border-subtle">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[12px] shrink-0">${getInitials(t.nombre)}</div>
-                <div class="flex-1 min-w-0"><div class="text-label-md font-label font-bold text-text-heading truncate">${t.nombre}</div><div class="text-body-sm font-sans text-text-muted">${t.rol}</div></div>
-                <button onclick="VX.selectedTalents.delete(${t.id}); renderPropuestas(); renderTalentGrid();" class="text-text-muted hover:text-error"><span class="material-symbols-outlined text-[16px]">close</span></button>
-              </div>`).join('')}
+
+          <div class="flex flex-col gap-2 max-h-60 overflow-y-auto">
+            ${activeTalents.length === 0 ? `
+              <div class="text-center py-4 text-text-muted text-body-sm">
+                Sin recursos asignados a esta propuesta. Usá "+ Agregar Recurso" o seleccioná del directorio.
+              </div>` :
+              activeTalents.map(t => `
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-canvas border border-border-subtle hover:border-primary/40 transition-all">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[12px] shrink-0">${getInitials(t.nombre)}</div>
+                    <div class="min-w-0">
+                      <div class="text-label-md font-label font-bold text-text-heading truncate">${t.nombre}</div>
+                      <div class="text-body-sm font-sans text-text-muted">${t.rol} · $${t.tarifa}/h</div>
+                    </div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-[11px] font-label font-bold">${t.seniority}</span>
+                </div>
+              `).join('')
+            }
           </div>
         </div>
       </div>
 
-      <!-- Preview -->
-      <div class="lg:col-span-8">
-        <div id="proposalPreview" class="bg-surface-card rounded-xl shadow-sm border border-border-subtle overflow-hidden">
-          <!-- Header preview -->
-          <div class="bg-gradient-to-r from-legacy-brand-navy to-primary p-6 text-on-primary">
-            <div class="flex items-center gap-3 mb-2">
-              <span class="material-symbols-outlined text-tertiary-fixed text-[24px]">hub</span>
-              <span class="text-label-lg font-label font-bold uppercase tracking-wider opacity-80">Virtual Xpert · Talent Hub</span>
+      <!-- Live PDF Preview -->
+      <div class="lg:col-span-7">
+        <div id="proposalPreview" class="bg-surface-card rounded-2xl shadow-lg border border-border-subtle overflow-hidden">
+          <!-- Header branding -->
+          <div class="bg-gradient-to-r from-legacy-brand-navy to-primary p-6 text-on-primary relative">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center">
+                  <span class="material-symbols-outlined text-tertiary-fixed text-[24px]">hub</span>
+                </div>
+                <span class="text-headline-sm font-sans font-bold tracking-tight">Virtual Xpert</span>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-label-sm font-label uppercase font-bold tracking-wider text-tertiary-fixed">Propuesta Client-Ready</span>
             </div>
-            <h2 id="previewTitulo" class="text-headline-lg font-sans font-bold">Propuesta de Perfiles IT — Virtual Xpert</h2>
-            <p class="text-body-md font-sans opacity-70 mt-1">Fecha: ${new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'long', year:'numeric' })}</p>
+            <h2 id="previewTitulo" class="text-headline-lg font-sans font-bold">Propuesta de Perfiles IT para ${activeClient.nombre}</h2>
+            <p class="text-body-sm font-sans opacity-80 mt-1 flex items-center gap-2">
+              <span>Cliente: <b>${activeClient.nombre}</b></span> · 
+              <span>Fecha: ${new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'long', year:'numeric' })}</span>
+            </p>
           </div>
-          <!-- Profiles -->
-          <div class="p-6 flex flex-col gap-5">
-            ${selected.map((t, i) => {
-              const anon = false; // will be controlled by radio
-              const status = getStatusBadge(t.disponibilidad);
-              return `
-              <div class="border border-border-subtle rounded-xl overflow-hidden">
-                <div class="p-5">
-                  <div class="flex items-start gap-4 mb-4">
-                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-xl shrink-0">${getInitials(t.nombre)}</div>
-                    <div class="flex-1">
-                      <div class="flex items-start justify-between gap-2">
-                        <div>
-                          <h3 class="text-headline-sm font-sans font-bold text-text-heading">${t.nombre}</h3>
-                          <p class="text-body-md font-sans text-text-muted">${t.rol} · ${t.seniority} · ${t.pais} (${t.zona})</p>
+
+          <!-- Proposal Body -->
+          <div class="p-6 flex flex-col gap-6">
+            <!-- Proposal Specs / Scope -->
+            <div class="bg-surface-canvas p-4 rounded-xl border border-border-subtle">
+              <h4 class="text-label-lg font-label font-bold text-text-heading mb-1.5 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-primary text-[18px]">architecture</span>Alcance & Especificaciones del Proyecto
+              </h4>
+              <p id="previewPropTexto" class="text-body-md font-sans text-text-body leading-relaxed whitespace-pre-wrap">${activeClient.propuestaTexto || activeClient.necesidades || 'Propuesta técnica en proceso de asignación.'}</p>
+            </div>
+
+            <!-- Resources Cards -->
+            <div class="flex flex-col gap-4">
+              <h4 class="text-label-lg font-label font-bold text-text-heading flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-primary text-[18px]">badge</span>Perfil Solicitado / Recurso Asignado
+              </h4>
+              ${activeTalents.length === 0 ? `
+                <div class="p-6 rounded-xl border border-dashed border-border-subtle text-center text-text-muted text-body-sm">
+                  Sin recurso asignado a esta propuesta. Seleccioná un talento del panel izquierdo.
+                </div>` :
+                activeTalents.map(t => `
+                  <div class="border border-border-subtle rounded-xl p-5 bg-surface-card">
+                    <div class="flex items-start gap-4 mb-4">
+                      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-lg shrink-0">${getInitials(t.nombre)}</div>
+                      <div class="flex-1">
+                        <div class="flex items-start justify-between gap-2">
+                          <div>
+                            <h3 class="text-headline-sm font-sans font-bold text-text-heading">${t.nombre}</h3>
+                            <p class="text-body-md font-sans text-text-muted">${t.rol} · ${t.seniority} · ${t.pais} (${t.zona})</p>
+                          </div>
+                          <span class="px-2.5 py-1 rounded-full bg-[#D1FAE5] text-[#065F46] text-label-sm font-label font-bold">${t.match || 90}% Match</span>
                         </div>
-                        <span class="px-2.5 py-1 rounded-full bg-[#D1FAE5] text-[#065F46] text-label-sm font-label font-bold whitespace-nowrap">${t.match}% Match</span>
                       </div>
                     </div>
+
+                    <p class="text-body-sm font-sans text-text-body leading-relaxed mb-4">${t.resumen}</p>
+
+                    <div class="grid grid-cols-3 gap-3 mb-4">
+                      <div class="bg-surface-canvas rounded-xl p-2.5 text-center border border-border-subtle">
+                        <div class="text-label-lg font-label font-bold text-primary">$${t.tarifa}/h</div>
+                        <div class="text-[11px] font-sans text-text-muted">Tarifa</div>
+                      </div>
+                      <div class="bg-surface-canvas rounded-xl p-2.5 text-center border border-border-subtle">
+                        <div class="text-label-lg font-label font-bold text-text-heading">${t.experiencia} años</div>
+                        <div class="text-[11px] font-sans text-text-muted">Experiencia</div>
+                      </div>
+                      <div class="bg-surface-canvas rounded-xl p-2.5 text-center border border-border-subtle">
+                        <div class="text-label-lg font-label font-bold text-text-heading">${t.ingles}</div>
+                        <div class="text-[11px] font-sans text-text-muted">Inglés</div>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5">
+                      ${(t.stack || []).map(s => `<span class="px-2.5 py-0.5 rounded-full bg-surface-container text-text-body text-[11px] font-label font-semibold">${s}</span>`).join('')}
+                    </div>
                   </div>
-                  <p class="text-body-md font-sans text-text-body leading-relaxed mb-4">${t.resumen}</p>
-                  <div class="grid grid-cols-3 gap-3 mb-4">
-                    <div class="bg-surface-canvas rounded-xl p-3 text-center border border-border-subtle"><div class="text-label-lg font-label font-bold text-primary">$${t.tarifa}/h</div><div class="text-body-sm font-sans text-text-muted">Tarifa</div></div>
-                    <div class="bg-surface-nasa rounded-xl p-3 text-center border border-border-subtle"><div class="text-label-lg font-label font-bold text-text-heading">${t.experiencia}a</div><div class="text-body-sm font-sans text-text-muted">Experiencia</div></div>
-                    <div class="bg-surface-nasa rounded-xl p-3 text-center border border-border-subtle"><div class="text-label-lg font-label font-bold text-text-heading">${t.ingles}</div><div class="text-body-sm font-sans text-text-muted">Inglés</div></div>
-                  </div>
-                  <div class="flex flex-wrap gap-1.5">
-                    ${t.stack.map(s => `<span class="px-2.5 py-1 rounded-full bg-surface-container text-text-body text-label-md font-label font-semibold">${s}</span>`).join('')}
-                  </div>
-                </div>
-              </div>`;
-            }).join('')}
+                `).join('')
+              }
+            </div>
+
+            <!-- Footer terms -->
             <div class="mt-2 p-4 rounded-xl bg-surface-container-low border border-border-subtle text-center">
-              <p class="text-body-sm font-sans text-text-muted">© ${new Date().getFullYear()} Virtual Xpert · <a href="https://virtual-xpert.net" class="text-primary hover:underline">virtual-xpert.net</a> · Documento confidencial</p>
+              <p class="text-body-sm font-sans text-text-muted">© ${new Date().getFullYear()} Virtual Xpert · Documento Confidencial Client-Ready · <a href="https://virtual-xpert.net" class="text-primary hover:underline">virtual-xpert.net</a></p>
             </div>
           </div>
         </div>
       </div>
     </div>
   `;
-
-  // Sync title input
-  document.getElementById('propTitulo')?.addEventListener('input', (e) => {
-    const el = document.getElementById('previewTitulo');
-    if (el) el.textContent = e.target.value;
-  });
 }
 
 function exportPDF() {
@@ -1631,14 +1749,14 @@ function renderReportes() {
           <h3 class="text-headline-sm font-sans font-bold text-text-heading mb-4">Top Perfiles por Match</h3>
           <div class="flex flex-col gap-2">
             ${topTalents.map((t, i) => `
-              <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-canvas transition-all">
-                <span class="text-label-sm font-label font-bold text-text-muted w-4 text-center">${i+1}</span>
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[11px] shrink-0">${getInitials(t.nombre)}</div>
+              <div onclick="openTalentModal('${t.id}')" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-container-low transition-all cursor-pointer border border-transparent hover:border-primary/20 group">
+                <span class="text-label-sm font-label font-bold text-text-muted w-4 text-center group-hover:text-primary">${i+1}</span>
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[12px] shrink-0">${getInitials(t.nombre)}</div>
                 <div class="flex-1 min-w-0">
-                  <div class="text-label-md font-label font-bold text-text-heading truncate">${t.nombre}</div>
-                  <div class="text-body-sm font-sans text-text-muted truncate">${t.rol}</div>
+                  <div class="text-label-md font-label font-bold text-text-heading truncate group-hover:text-primary transition-colors">${t.nombre}</div>
+                  <div class="text-body-sm font-sans text-text-muted truncate">${t.rol} · ${t.pais}</div>
                 </div>
-                <span class="text-label-lg font-label font-bold text-primary shrink-0">${t.match}%</span>
+                <span class="text-label-lg font-label font-bold text-primary shrink-0 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">auto_awesome</span>${t.match}%</span>
               </div>`).join('')}
           </div>
         </div>
@@ -1748,19 +1866,34 @@ async function fetchFromSupabase() {
         };
       });
 
-      const dbIds = new Set(dbTalents.map(d => String(d.id)));
-      const localOnly = VX.talents.filter(lt => !dbIds.has(String(lt.id)));
-      VX.talents = [...dbTalents, ...localOnly];
+      VX.talents = dbTalents;
       applyFilters();
     }
 
     const { data: clientsData, error: cErr } = await supabaseClient.from('clients').select('*').order('id', { ascending: true });
     if (!cErr && clientsData && clientsData.length > 0) {
       VX.clients = clientsData.map(c => ({
-        ...c,
+        id: c.id,
+        nombre: c.nombre || c.empresa || 'Cliente B2B',
+        sector: c.industria || 'Tech',
+        sede: c.pais || 'LATAM',
+        zona: 'UTC-3',
+        tier: 1,
+        estado: 'Activo',
+        contrato: 'MSA Vigente',
+        pago: 'Net 30',
+        stakeholder: {
+          nombre: c.contacto_principal || 'Contacto Principal',
+          cargo: 'Lead Contact',
+          email: c.email || '',
+          telefono: c.telefono || ''
+        },
+        necesidades: c.necesidades || '',
+        notas: c.notas || '',
+        propuestaTexto: c.propuestaTexto || c.propuesta_texto || '',
+        archivos: Array.isArray(c.archivos) ? c.archivos : (typeof c.archivos === 'string' ? JSON.parse(c.archivos || '[]') : []),
         talentoAsignado: Array.isArray(c.talentoAsignado) ? c.talentoAsignado : [],
-        calls: Array.isArray(c.calls) ? c.calls : [],
-        stakeholder: c.stakeholder || { nombre: c.contacto_principal || 'Contacto', cargo: 'Lead', email: c.email || '', telefono: c.telefono || '' }
+        calls: Array.isArray(c.calls) ? c.calls : []
       }));
       if (!VX.activeclientId && VX.clients.length > 0) VX.activeclientId = VX.clients[0].id;
       if (VX.currentSection === 'clientes') renderClientes();
@@ -1768,6 +1901,105 @@ async function fetchFromSupabase() {
   } catch (err) {
     console.error('Error sincronizando con Supabase:', err);
   }
+}
+
+function openNewClientModal(id = null) {
+  const modal = document.getElementById('clientModal');
+  if (!modal) return;
+  
+  const title = document.getElementById('clientModalTitle');
+  const idInput = document.getElementById('clientFormId');
+  const nameInput = document.getElementById('clientNombre');
+  const indInput = document.getElementById('clientIndustria');
+  const paisInput = document.getElementById('clientPais');
+  const contactInput = document.getElementById('clientContacto');
+  const telInput = document.getElementById('clientTelefono');
+  const emailInput = document.getElementById('clientEmail');
+  const necInput = document.getElementById('clientNecesidades');
+  const notasInput = document.getElementById('clientNotas');
+
+  if (id) {
+    const c = VX.clients.find(x => String(x.id) === String(id));
+    if (c) {
+      if (title) title.textContent = 'Editar Cliente B2B';
+      if (idInput) idInput.value = c.id;
+      if (nameInput) nameInput.value = c.nombre || '';
+      if (indInput) indInput.value = c.sector || '';
+      if (paisInput) paisInput.value = c.sede || '';
+      if (contactInput) contactInput.value = c.stakeholder?.nombre || '';
+      if (telInput) telInput.value = c.stakeholder?.telefono || '';
+      if (emailInput) emailInput.value = c.stakeholder?.email || '';
+      if (necInput) necInput.value = c.necesidades || '';
+      if (notasInput) notasInput.value = c.notas || '';
+    }
+  } else {
+    if (title) title.textContent = 'Nuevo Cliente B2B';
+    if (idInput) idInput.value = '';
+    if (nameInput) nameInput.value = '';
+    if (indInput) indInput.value = '';
+    if (paisInput) paisInput.value = '';
+    if (contactInput) contactInput.value = '';
+    if (telInput) telInput.value = '';
+    if (emailInput) emailInput.value = '';
+    if (necInput) necInput.value = '';
+    if (notasInput) notasInput.value = '';
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closeClientModal() {
+  const modal = document.getElementById('clientModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function saveClientToSupabase(e) {
+  if (e) e.preventDefault();
+  
+  const id = document.getElementById('clientFormId')?.value;
+  const nombre = document.getElementById('clientNombre')?.value?.trim();
+  const industria = document.getElementById('clientIndustria')?.value?.trim() || 'Tech';
+  const pais = document.getElementById('clientPais')?.value?.trim() || 'LATAM';
+  const contacto = document.getElementById('clientContacto')?.value?.trim() || 'Contacto';
+  const telefono = document.getElementById('clientTelefono')?.value?.trim() || '';
+  const email = document.getElementById('clientEmail')?.value?.trim() || '';
+  const necesidades = document.getElementById('clientNecesidades')?.value?.trim() || '';
+  const notas = document.getElementById('clientNotas')?.value?.trim() || '';
+
+  if (!nombre) return;
+
+  const payload = {
+    nombre: nombre,
+    empresa: nombre,
+    industria: industria,
+    pais: pais,
+    contacto_principal: contacto,
+    telefono: telefono,
+    email: email,
+    necesidades: necesidades,
+    notas: notas
+  };
+
+  if (supabaseClient) {
+    if (id) {
+      const { error } = await supabaseClient.from('clients').update(payload).eq('id', id);
+      if (error) {
+        showToast('Error al actualizar cliente en Supabase', 'error');
+        return;
+      }
+    } else {
+      const { data, error } = await supabaseClient.from('clients').insert([payload]).select();
+      if (error) {
+        showToast('Error al guardar cliente en Supabase', 'error');
+        return;
+      }
+      if (data && data.length > 0) payload.id = data[0].id;
+    }
+  }
+
+  closeClientModal();
+  showToast('Cliente guardado correctamente en Supabase ✓', 'success');
+  await fetchFromSupabase();
 }
 
 async function deleteTalentDirectly(id) {
@@ -1810,10 +2042,146 @@ async function deleteClientDirectly(id) {
     }
   }
 
-  VX.clients = VX.clients.filter(c => c.id !== id);
+  VX.clients = VX.clients.filter(c => String(c.id) !== String(id));
   VX.activeclientId = VX.clients[0]?.id || null;
   showToast('Cliente eliminado correctamente de Supabase', 'success');
   renderClientes();
+}
+
+function toggleInlineEdit(clientId, field) {
+  const map = { necesidades: 'Nec', notas: 'Notas', propuestaTexto: 'PropuestaTexto' };
+  const tag = map[field] || 'Nec';
+  const toggle = document.getElementById(`edit${tag}Toggle_${clientId}`);
+  const viewEl = document.getElementById(`view${tag}_${clientId}`);
+  const editBox = document.getElementById(`edit${tag}Box_${clientId}`);
+
+  if (!toggle || !viewEl || !editBox) return;
+
+  if (toggle.checked) {
+    viewEl.classList.add('hidden');
+    editBox.classList.remove('hidden');
+  } else {
+    viewEl.classList.remove('hidden');
+    editBox.classList.add('hidden');
+  }
+}
+
+async function saveInlineClientField(clientId, field) {
+  const c = VX.clients.find(x => String(x.id) === String(clientId));
+  if (!c) return;
+
+  const map = { necesidades: 'Nec', notas: 'Notas', propuestaTexto: 'PropuestaTexto' };
+  const tag = map[field] || 'Nec';
+
+  const textarea = document.getElementById(`textarea${tag}_${clientId}`);
+  const viewEl = document.getElementById(`view${tag}_${clientId}`);
+  const editBox = document.getElementById(`edit${tag}Box_${clientId}`);
+  const toggle = document.getElementById(`edit${tag}Toggle_${clientId}`);
+
+  if (!textarea) return;
+
+  const newValue = textarea.value.trim();
+  c[field] = newValue;
+
+  if (supabaseClient && c.id) {
+    const dbId = isNaN(Number(c.id)) ? c.id : Number(c.id);
+    const { error } = await supabaseClient
+      .from('clients')
+      .update({ [field]: newValue })
+      .eq('id', dbId);
+
+    if (error) {
+      console.error('Error actualizando cliente en Supabase:', error);
+      showToast('Error al guardar cambios en Supabase: ' + error.message, 'error');
+      return;
+    }
+  }
+
+  showToast('Cambios guardados correctamente ✓', 'success');
+
+  if (viewEl) {
+    viewEl.textContent = newValue || 'Sin información registrada. Habilitá edición para agregar texto.';
+    viewEl.classList.remove('hidden');
+  }
+
+  if (toggle) toggle.checked = false;
+  if (editBox) editBox.classList.add('hidden');
+}
+
+async function handleClientFileUpload(clientId, inputEl) {
+  const c = VX.clients.find(x => String(x.id) === String(clientId));
+  if (!c || !inputEl.files || inputEl.files.length === 0) return;
+
+  const file = inputEl.files[0];
+  showToast('Subiendo archivo de cliente...', 'info');
+
+  let fileUrl = null;
+  if (supabaseClient) {
+    fileUrl = await uploadCVFileToSupabase(file);
+  }
+
+  c.archivos = c.archivos || [];
+  const fileObj = {
+    id: String(Date.now()),
+    nombre: file.name,
+    size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+    fecha: new Date().toLocaleDateString('es-AR'),
+    url: fileUrl
+  };
+  c.archivos.push(fileObj);
+
+  if (supabaseClient && c.id) {
+    const dbId = isNaN(Number(c.id)) ? c.id : Number(c.id);
+    await supabaseClient.from('clients').update({ archivos: c.archivos }).eq('id', dbId);
+  }
+
+  showToast(`Archivo "${file.name}" subido correctamente ✓`, 'success');
+  renderClientDetail(clientId);
+}
+
+async function deleteClientFile(clientId, fileId) {
+  const c = VX.clients.find(x => String(x.id) === String(clientId));
+  if (!c) return;
+
+  c.archivos = (c.archivos || []).filter(f => String(f.id) !== String(fileId));
+
+  if (supabaseClient && c.id) {
+    const dbId = isNaN(Number(c.id)) ? c.id : Number(c.id);
+    await supabaseClient.from('clients').update({ archivos: c.archivos }).eq('id', dbId);
+  }
+
+  showToast('Archivo eliminado', 'info');
+  renderClientDetail(clientId);
+}
+
+async function markClientCompleted(clientId) {
+  const c = VX.clients.find(x => String(x.id) === String(clientId));
+  if (!c) return;
+
+  c.estado = 'Completed';
+
+  // Mark assigned talents in talents pool
+  (c.talentoAsignado || []).forEach(tid => {
+    const t = VX.talents.find(x => String(x.id) === String(tid));
+    if (t) {
+      t.disponibilidad = 'Asignado';
+      t.asignacion = { cliente: c.nombre, horas: 40 };
+    }
+  });
+
+  if (supabaseClient && c.id) {
+    const dbId = isNaN(Number(c.id)) ? c.id : Number(c.id);
+    await supabaseClient.from('clients').update({
+      estado: 'Completed',
+      talentoAsignado: c.talentoAsignado,
+      propuestaTexto: c.propuestaTexto || ''
+    }).eq('id', dbId);
+  }
+
+  showToast(`Cliente "${c.nombre}" marcado como COMPLETED ✓ Propuesta finalizada.`, 'success');
+  renderClientList();
+  if (VX.currentSection === 'clientes') renderClientDetail(clientId);
+  if (VX.currentSection === 'propuestas') renderPropuestas();
 }
 
 async function uploadCVFileToSupabase(file) {
