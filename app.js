@@ -2364,5 +2364,117 @@ document.addEventListener('DOMContentLoaded', () => {
   // Init sections & Supabase
   navigate('talentos');
   initCVParser();
-  fetchFromSupabase();
+  fetchFromSupabase().then(() => initRealtimeSubscriptions());
 });
+
+// ---- SUPABASE REALTIME ----
+function initRealtimeSubscriptions() {
+  if (!supabaseClient) return;
+
+  // ---- TALENTS ----
+  supabaseClient
+    .channel('realtime:talents')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'talents' }, (payload) => {
+      const { eventType, new: newRow, old: oldRow } = payload;
+
+      if (eventType === 'DELETE') {
+        VX.talents = VX.talents.filter(t => String(t.id) !== String(oldRow.id));
+      } else if (eventType === 'INSERT') {
+        // Only add if not already present
+        if (!VX.talents.find(t => String(t.id) === String(newRow.id))) {
+          VX.talents.unshift(mapTalentRow(newRow));
+        }
+      } else if (eventType === 'UPDATE') {
+        const idx = VX.talents.findIndex(t => String(t.id) === String(newRow.id));
+        if (idx !== -1) VX.talents[idx] = mapTalentRow(newRow);
+        else VX.talents.unshift(mapTalentRow(newRow));
+      }
+
+      applyFilters();
+    })
+    .subscribe();
+
+  // ---- CLIENTS ----
+  supabaseClient
+    .channel('realtime:clients')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, (payload) => {
+      const { eventType, new: newRow, old: oldRow } = payload;
+
+      if (eventType === 'DELETE') {
+        VX.clients = VX.clients.filter(c => String(c.id) !== String(oldRow.id));
+        if (String(VX.activeclientId) === String(oldRow.id)) {
+          VX.activeclientId = VX.clients[0]?.id || null;
+        }
+      } else if (eventType === 'INSERT') {
+        if (!VX.clients.find(c => String(c.id) === String(newRow.id))) {
+          VX.clients.push(mapClientRow(newRow));
+        }
+      } else if (eventType === 'UPDATE') {
+        const idx = VX.clients.findIndex(c => String(c.id) === String(newRow.id));
+        const mapped = mapClientRow(newRow);
+        if (idx !== -1) VX.clients[idx] = mapped;
+        else VX.clients.push(mapped);
+      }
+
+      renderClientList();
+      if (VX.currentSection === 'clientes' && VX.activeclientId) {
+        renderClientDetail(VX.activeclientId);
+      }
+      if (VX.currentSection === 'propuestas') renderPropuestas();
+    })
+    .subscribe();
+
+  console.log('✓ Supabase Realtime activo para talents y clients');
+}
+
+// Maps a raw Supabase talents row to the VX.talents format
+function mapTalentRow(t) {
+  let parsedStack = [];
+  try { parsedStack = Array.isArray(t.stack) ? t.stack : JSON.parse(t.stack || '[]'); } catch(e) { parsedStack = ['IT']; }
+  let parsedCerts = [];
+  try { parsedCerts = Array.isArray(t.certificaciones) ? t.certificaciones : JSON.parse(t.certificaciones || '[]'); } catch(e) {}
+  let parsedProjs = [];
+  try { parsedProjs = Array.isArray(t.proyectos) ? t.proyectos : JSON.parse(t.proyectos || '[]'); } catch(e) {}
+  let parsedAsig = null;
+  try { parsedAsig = typeof t.asignacion === 'string' ? JSON.parse(t.asignacion) : t.asignacion; } catch(e) {}
+
+  return {
+    id: t.id, nombre: t.nombre || 'Candidato IT', rol: t.rol || 'Software Engineer',
+    seniority: t.seniority || 'Senior', pais: t.pais || 'Argentina', zona: t.zona || 'GMT-3',
+    disponibilidad: t.disponibilidad || 'Inmediata', ingles: t.ingles || 'C1',
+    tarifa: Number(t.tarifa) || 50, experiencia: Number(t.experiencia) || 3,
+    stack: parsedStack.length > 0 ? parsedStack : ['IT'], certificaciones: parsedCerts,
+    email: t.email || '', telefono: t.telefono || '', linkedin: t.linkedin || '',
+    resumen: t.resumen || 'Sin resumen registrado.', proyectos: parsedProjs,
+    match: Number(t.match) || 85, asignacion: parsedAsig,
+    avatar: t.avatar || null, cv_url: t.cv_url || null, activo: t.activo !== false
+  };
+}
+
+// Maps a raw Supabase clients row to the VX.clients format
+function mapClientRow(c) {
+  let calls = [];
+  try { calls = Array.isArray(c.calls) ? c.calls : JSON.parse(c.calls || '[]'); } catch(e) {}
+  let talentoAsignado = [];
+  try { talentoAsignado = Array.isArray(c.talentoAsignado) ? c.talentoAsignado : JSON.parse(c.talentoAsignado || '[]'); } catch(e) {}
+  let archivos = [];
+  try { archivos = Array.isArray(c.archivos) ? c.archivos : JSON.parse(c.archivos || '[]'); } catch(e) {}
+
+  return {
+    id: c.id,
+    nombre: c.nombre || c.empresa || 'Cliente B2B',
+    sector: c.industria || 'Tech',
+    sede: c.pais || 'LATAM',
+    zona: 'UTC-3', tier: 1,
+    estado: c.estado || 'Activo',
+    contrato: 'MSA Vigente', pago: 'Net 30',
+    stakeholder: { nombre: c.contacto_principal || 'Contacto', cargo: 'Lead Contact', email: c.email || '', telefono: c.telefono || '' },
+    necesidades: c.necesidades || '',
+    notas: c.notas || '',
+    propuestaTexto: c.propuestaTexto || '',
+    archivos,
+    talentoAsignado,
+    calls
+  };
+}
+
