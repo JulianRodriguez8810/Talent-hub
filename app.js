@@ -152,10 +152,10 @@ function applyFilters() {
       if (!searchable.includes(q)) return false;
     }
 
-    // Stack
+    // Stack — AND logic: talent must have ALL selected technologies
     if (f.stack.length > 0) {
       const normStack = stackArr.map(s => removeAccents(s));
-      if (!f.stack.some(s => normStack.includes(removeAccents(s)))) return false;
+      if (!f.stack.every(s => normStack.includes(removeAccents(s)))) return false;
     }
     // Inglés
     if (f.ingles.length > 0 && !f.ingles.some(i => removeAccents(i) === removeAccents(t.ingles))) return false;
