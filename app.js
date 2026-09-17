@@ -658,9 +658,14 @@ function renderClientDetail(id) {
 
         <div class="md:col-span-3 flex flex-col gap-2">
           ${isCompleted ? `
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-label-sm font-label font-bold bg-[#D1FAE5] text-[#065F46] self-start border border-[#A7F3D0]">
-              <span class="material-symbols-outlined text-[16px]">verified</span>Completed / Trabajo Confirmado
-            </span>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-label-sm font-label font-bold bg-[#D1FAE5] text-[#065F46] self-start border border-[#A7F3D0]">
+                <span class="material-symbols-outlined text-[16px]">verified</span>Completed / Trabajo Confirmado
+              </span>
+              <button onclick="unmarkClientCompleted('${c.id}')" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-label-sm font-label text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-all" title="Revertir estado Completed (requiere doble confirmación)">
+                <span class="material-symbols-outlined text-[14px]">undo</span>Revertir
+              </button>
+            </div>
           ` : `
             <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-label-sm font-label font-bold self-start" style="background:${statusColor[c.estado] || '#10B981'}20;color:${statusColor[c.estado] || '#10B981'}">
               <span class="w-2 h-2 rounded-full" style="background:${statusColor[c.estado] || '#10B981'}"></span>${c.estado || 'Activo'}
@@ -1122,19 +1127,12 @@ async function saveCall(clientId) {
   c.calls = c.calls || [];
   c.calls.unshift(call);
 
-  if (supabaseClient && c.id) {
-    const dbId = isNaN(Number(c.id)) ? c.id : Number(c.id);
-    await supabaseClient.from('clients').update({ calls: c.calls }).eq('id', dbId);
-  }
+  await updateClientInSupabase(c.id, { calls: c.calls });
 
   document.getElementById('callModal').classList.add('hidden');
   renderClientDetail(clientId);
   renderClientList();
   showToast('Call registrada correctamente ✓', 'success');
-}
-
-function openNewClientModal() {
-  showToast('Editor de cliente disponible en la próxima versión', 'info');
 }
 
 // ---- CV PARSER SECTION ----
@@ -1935,35 +1933,49 @@ async function fetchFromSupabase() {
         let rawNotas = c.notas || '';
         let rawNec = c.necesidades || '';
 
-        // Extract embedded archivos if present
+        // Extract embedded archivos from notas fallback
         let extractedArchivos = Array.isArray(c.archivos) ? c.archivos : [];
-        if (extractedArchivos.length === 0 && (typeof rawNotas === 'string') && rawNotas.includes('[ARCHIVOS]')) {
-          const match = rawNotas.match(/\[ARCHIVOS\](.*?)\[\/ARCHIVOS\]/s);
-          if (match && match[1]) {
-            try { extractedArchivos = JSON.parse(match[1]); } catch(e){}
-          }
+        if (extractedArchivos.length === 0 && typeof rawNotas === 'string' && rawNotas.includes('[ARCHIVOS]')) {
+          const m = rawNotas.match(/\[ARCHIVOS\](.*?)\[\/ARCHIVOS\]/s);
+          if (m?.[1]) { try { extractedArchivos = JSON.parse(m[1]); } catch(e){} }
         }
-        const cleanNotas = typeof rawNotas === 'string' ? rawNotas.replace(/\[ARCHIVOS\].*?\[\/ARCHIVOS\]/s, '').trim() : rawNotas;
 
-        // Extract embedded propuestaTexto if present
-        let extractedPropuesta = c.propuestaTexto || c.propuesta_texto || '';
-        if (!extractedPropuesta && (typeof rawNec === 'string') && rawNec.includes('[PROPUESTA]')) {
-          const match = rawNec.match(/\[PROPUESTA\](.*?)\[\/PROPUESTA\]/s);
-          if (match && match[1]) {
-            extractedPropuesta = match[1];
-          }
-        }
-        const cleanNec = typeof rawNec === 'string' ? rawNec.replace(/\[PROPUESTA\].*?\[\/PROPUESTA\]/s, '').trim() : rawNec;
-
-        let parsedCalls = [];
+        // Extract embedded calls from notas fallback
+        let extractedCalls = [];
         try {
-          parsedCalls = Array.isArray(c.calls) ? c.calls : (typeof c.calls === 'string' ? JSON.parse(c.calls || '[]') : []);
-        } catch(e) { parsedCalls = []; }
+          extractedCalls = Array.isArray(c.calls) ? c.calls : (typeof c.calls === 'string' ? JSON.parse(c.calls || '[]') : []);
+        } catch(e) {}
+        if (extractedCalls.length === 0 && typeof rawNotas === 'string' && rawNotas.includes('[CALLS]')) {
+          const m = rawNotas.match(/\[CALLS\](.*?)\[\/CALLS\]/s);
+          if (m?.[1]) { try { extractedCalls = JSON.parse(m[1]); } catch(e){} }
+        }
 
+        const cleanNotas = typeof rawNotas === 'string'
+          ? rawNotas.replace(/\[ARCHIVOS\].*?\[\/ARCHIVOS\]/s, '').replace(/\[CALLS\].*?\[\/CALLS\]/s, '').trim()
+          : rawNotas;
+
+        // Extract embedded propuestaTexto from necesidades fallback
+        let extractedPropuesta = c.propuestaTexto || c.propuesta_texto || '';
+        if (!extractedPropuesta && typeof rawNec === 'string' && rawNec.includes('[PROPUESTA]')) {
+          const m = rawNec.match(/\[PROPUESTA\](.*?)\[\/PROPUESTA\]/s);
+          if (m?.[1]) extractedPropuesta = m[1];
+        }
+
+        // Extract embedded talentoAsignado from necesidades fallback
         let parsedTalentoAsignado = [];
         try {
           parsedTalentoAsignado = Array.isArray(c.talentoAsignado) ? c.talentoAsignado : (typeof c.talentoAsignado === 'string' ? JSON.parse(c.talentoAsignado || '[]') : []);
-        } catch(e) { parsedTalentoAsignado = []; }
+        } catch(e) {}
+        if (parsedTalentoAsignado.length === 0 && typeof rawNec === 'string' && rawNec.includes('[TALENTO]')) {
+          const m = rawNec.match(/\[TALENTO\](.*?)\[\/TALENTO\]/s);
+          if (m?.[1]) { try { parsedTalentoAsignado = JSON.parse(m[1]); } catch(e){} }
+        }
+
+        const cleanNec = typeof rawNec === 'string'
+          ? rawNec.replace(/\[PROPUESTA\].*?\[\/PROPUESTA\]/s, '').replace(/\[TALENTO\].*?\[\/TALENTO\]/s, '').trim()
+          : rawNec;
+
+        const parsedCalls = extractedCalls;
 
         return {
           id: c.id,
@@ -1986,7 +1998,7 @@ async function fetchFromSupabase() {
           propuestaTexto: extractedPropuesta,
           archivos: extractedArchivos,
           talentoAsignado: parsedTalentoAsignado,
-          calls: parsedCalls
+          calls: extractedCalls
         };
       });
       if (!VX.activeclientId && VX.clients.length > 0) VX.activeclientId = VX.clients[0].id;
@@ -2169,16 +2181,15 @@ async function updateClientInSupabase(clientId, payload) {
   // Try direct update with current fields
   let { error } = await supabaseClient.from('clients').update(updateObj).eq('id', dbId);
 
-  // If column error occurs, fallback to embedding in notas/necesidades
+  // If column error occurs, fallback to embedding complex fields in notas/necesidades
   if (error && error.message && (error.message.includes('Could not find') || error.message.includes('column'))) {
-    console.warn("Columna no existe en Supabase, aplicando serialización de compatibilidad:", error.message);
-    
-    // Fetch existing client row
+    console.warn('Columna no existe en Supabase, serialización de compatibilidad:', error.message);
+
     const { data: existingRows } = await supabaseClient.from('clients').select('notas, necesidades').eq('id', dbId);
     let existingNotas = existingRows?.[0]?.notas || '';
     let existingNec = existingRows?.[0]?.necesidades || '';
 
-    // If archivos updated, embed in notas
+    // archivos → embedded in notas
     if ('archivos' in updateObj) {
       const archivosJson = JSON.stringify(updateObj.archivos || []);
       existingNotas = existingNotas.replace(/\[ARCHIVOS\].*?\[\/ARCHIVOS\]/s, '').trim();
@@ -2187,7 +2198,7 @@ async function updateClientInSupabase(clientId, payload) {
       delete updateObj.archivos;
     }
 
-    // If propuestaTexto updated, embed in necesidades
+    // propuestaTexto → embedded in necesidades
     if ('propuestaTexto' in updateObj) {
       const propText = updateObj.propuestaTexto || '';
       existingNec = existingNec.replace(/\[PROPUESTA\].*?\[\/PROPUESTA\]/s, '').trim();
@@ -2196,12 +2207,32 @@ async function updateClientInSupabase(clientId, payload) {
       delete updateObj.propuestaTexto;
     }
 
+    // calls → JSON serialized in notas
+    if ('calls' in updateObj) {
+      const callsJson = JSON.stringify(updateObj.calls || []);
+      existingNotas = (updateObj.notas || existingNotas).replace(/\[CALLS\].*?\[\/CALLS\]/s, '').trim();
+      existingNotas += `\n[CALLS]${callsJson}[/CALLS]`;
+      updateObj.notas = existingNotas;
+      delete updateObj.calls;
+    }
+
+    // talentoAsignado → JSON serialized in necesidades
+    if ('talentoAsignado' in updateObj) {
+      const taJson = JSON.stringify(updateObj.talentoAsignado || []);
+      existingNec = (updateObj.necesidades || existingNec).replace(/\[TALENTO\].*?\[\/TALENTO\]/s, '').trim();
+      existingNec += `\n[TALENTO]${taJson}[/TALENTO]`;
+      updateObj.necesidades = existingNec;
+      delete updateObj.talentoAsignado;
+    }
+
+    // estado — try to store directly (should exist in most schemas)
+    // if still failing on retry, just log it
     const retry = await supabaseClient.from('clients').update(updateObj).eq('id', dbId);
     error = retry.error;
   }
 
   if (error) {
-    console.error("Error actualizando cliente en Supabase:", error.message);
+    console.error('Error actualizando cliente en Supabase:', error.message);
     return false;
   }
   return true;
@@ -2303,6 +2334,26 @@ async function markClientCompleted(clientId) {
   });
 
   showToast(`Cliente "${c.nombre}" marcado como COMPLETED ✓ Propuesta finalizada.`, 'success');
+  renderClientList();
+  if (VX.currentSection === 'clientes') renderClientDetail(clientId);
+  if (VX.currentSection === 'propuestas') renderPropuestas();
+}
+
+async function unmarkClientCompleted(clientId) {
+  const c = VX.clients.find(x => String(x.id) === String(clientId));
+  if (!c) return;
+
+  const ok1 = confirm(`¿Querés quitar el estado COMPLETED de "${c.nombre}"?\n\nEsto es una acción poco común. Asegurate de que realmente necesitás revertir el estado.`);
+  if (!ok1) return;
+
+  const ok2 = confirm(`Segunda confirmación: ¿Seguro que querés revertir "${c.nombre}" a estado Activo?`);
+  if (!ok2) return;
+
+  c.estado = 'Activo';
+
+  await updateClientInSupabase(c.id, { estado: 'Activo' });
+
+  showToast(`Estado de "${c.nombre}" revertido a Activo.`, 'info');
   renderClientList();
   if (VX.currentSection === 'clientes') renderClientDetail(clientId);
   if (VX.currentSection === 'propuestas') renderPropuestas();
