@@ -902,12 +902,41 @@ function renderClientDetail(id) {
   `;
 }
 
+function filterAssignList(query, clientId) {
+  const c = VX.clients.find(x => String(x.id) === String(clientId));
+  const container = document.getElementById('assignList');
+  if (!c || !container) return;
+
+  const q = removeAccents(query || '');
+  const assigned = (c.talentoAsignado || []).map(String);
+  const available = VX.talents.filter(t => {
+    if (t.activo === false || assigned.includes(String(t.id))) return false;
+    if (!q) return true;
+    const searchable = removeAccents(`${t.nombre} ${t.rol} ${t.seniority} ${(t.stack||[]).join(' ')}`);
+    return searchable.includes(q);
+  });
+
+  container.innerHTML = available.map(t => {
+    const status = getStatusBadge(t.disponibilidad);
+    return `<div class="flex items-center gap-3 p-3 rounded-xl bg-surface-canvas border border-border-subtle hover:border-primary transition-all cursor-pointer" onclick="assignTalent('${c.id}', '${t.id}')">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[14px] shrink-0">${getInitials(t.nombre)}</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-label-lg font-label font-bold text-text-heading">${t.nombre}</div>
+        <div class="text-body-sm font-sans text-text-muted">${t.rol} · ${t.seniority} · $${t.tarifa}/h</div>
+      </div>
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label font-bold ${status.bg} ${status.text}"><span class="w-1.5 h-1.5 rounded-full ${status.dot}"></span>${status.label}</span>
+    </div>`;
+  }).join('');
+}
+
 function openAssignModal(clientId) {
   const modal = document.getElementById('assignModal');
   const content = document.getElementById('assignModalContent');
-  const c = VX.clients.find(x => x.id === clientId);
+  const c = VX.clients.find(x => String(x.id) === String(clientId));
+  if (!c || !modal || !content) return;
 
-  const available = VX.talents.filter(t => t.activo && !c.talentoAsignado.includes(t.id));
+  const assigned = (c.talentoAsignado || []).map(String);
+  const available = VX.talents.filter(t => t.activo !== false && !assigned.includes(String(t.id)));
 
   content.innerHTML = `
     <div class="flex items-center justify-between mb-4">
@@ -915,50 +944,80 @@ function openAssignModal(clientId) {
       <button onclick="document.getElementById('assignModal').classList.add('hidden')" class="p-1.5 rounded-lg text-text-muted hover:bg-surface-container transition-all"><span class="material-symbols-outlined text-[20px]">close</span></button>
     </div>
     <div class="mb-3">
-      <input type="text" placeholder="Buscar talento..." class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,120,212,0.15)]" oninput="filterAssignList(this.value, ${clientId})"/>
+      <input type="text" placeholder="Buscar talento por nombre, rol o skill..." class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary" oninput="filterAssignList(this.value, '${c.id}')"/>
     </div>
     <div id="assignList" class="flex flex-col gap-2 max-h-80 overflow-y-auto">
-      ${available.map(t => {
-        const status = getStatusBadge(t.disponibilidad);
-        return `<div class="flex items-center gap-3 p-3 rounded-xl bg-surface-canvas border border-border-subtle hover:border-primary transition-all cursor-pointer" onclick="assignTalent(${clientId}, ${t.id})">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[14px] shrink-0">${getInitials(t.nombre)}</div>
-          <div class="flex-1 min-w-0">
-            <div class="text-label-lg font-label font-bold text-text-heading">${t.nombre}</div>
-            <div class="text-body-sm font-sans text-text-muted">${t.rol} · ${t.seniority} · $${t.tarifa}/h</div>
-          </div>
-          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label font-bold ${status.bg} ${status.text}"><span class="w-1.5 h-1.5 rounded-full ${status.dot}"></span>${status.label}</span>
-        </div>`;
-      }).join('')}
+      ${available.length === 0 ? '<div class="text-center py-6 text-text-muted text-body-sm">No hay más recursos disponibles para asignar.</div>' :
+        available.map(t => {
+          const status = getStatusBadge(t.disponibilidad);
+          return `<div class="flex items-center gap-3 p-3 rounded-xl bg-surface-canvas border border-border-subtle hover:border-primary transition-all cursor-pointer" onclick="assignTalent('${c.id}', '${t.id}')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[14px] shrink-0">${getInitials(t.nombre)}</div>
+            <div class="flex-1 min-w-0">
+              <div class="text-label-lg font-label font-bold text-text-heading">${t.nombre}</div>
+              <div class="text-body-sm font-sans text-text-muted">${t.rol} · ${t.seniority} · $${t.tarifa}/h</div>
+            </div>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label font-bold ${status.bg} ${status.text}"><span class="w-1.5 h-1.5 rounded-full ${status.dot}"></span>${status.label}</span>
+          </div>`;
+        }).join('')
+      }
     </div>
   `;
   modal.classList.remove('hidden');
 }
 
-function assignTalent(clientId, talentId) {
-  const c = VX.clients.find(x => x.id === clientId);
-  const t = VX.talents.find(x => x.id === talentId);
+async function assignTalent(clientId, talentId) {
+  const c = VX.clients.find(x => String(x.id) === String(clientId));
+  const t = VX.talents.find(x => String(x.id) === String(talentId));
   if (!c || !t) return;
-  if (!c.talentoAsignado.includes(talentId)) {
-    c.talentoAsignado.push(talentId);
+
+  c.talentoAsignado = c.talentoAsignado || [];
+  const strTid = String(t.id);
+  if (!c.talentoAsignado.map(String).includes(strTid)) {
+    c.talentoAsignado.push(t.id);
     t.asignacion = { cliente: c.nombre, horas: 40 };
     t.disponibilidad = 'Asignado';
+
+    await updateClientInSupabase(c.id, { talentoAsignado: c.talentoAsignado });
+    if (supabaseClient && t.id) {
+      const dbTid = isNaN(Number(t.id)) ? t.id : Number(t.id);
+      await supabaseClient.from('talents').update({
+        disponibilidad: 'Asignado',
+        asignacion: JSON.stringify(t.asignacion)
+      }).eq('id', dbTid);
+    }
   }
-  document.getElementById('assignModal').classList.add('hidden');
-  renderClientDetail(clientId);
+
+  const modal = document.getElementById('assignModal');
+  if (modal) modal.classList.add('hidden');
+
+  showToast(`${t.nombre} asignado a ${c.nombre} ✓`, 'success');
   renderClientList();
-  showToast(`${t.nombre} asignado a ${c.nombre}`, 'success');
+  if (VX.currentSection === 'clientes') renderClientDetail(c.id);
+  if (VX.currentSection === 'propuestas') renderPropuestas();
 }
 
-function unassignTalent(clientId, talentId) {
-  const c = VX.clients.find(x => x.id === clientId);
-  const t = VX.talents.find(x => x.id === talentId);
+async function unassignTalent(clientId, talentId) {
+  const c = VX.clients.find(x => String(x.id) === String(clientId));
+  const t = VX.talents.find(x => String(x.id) === String(talentId));
   if (!c || !t) return;
-  c.talentoAsignado = c.talentoAsignado.filter(id => id !== talentId);
+
+  c.talentoAsignado = (c.talentoAsignado || []).filter(id => String(id) !== String(talentId));
   t.asignacion = null;
   t.disponibilidad = 'Inmediata';
-  renderClientDetail(clientId);
-  renderClientList();
+
+  await updateClientInSupabase(c.id, { talentoAsignado: c.talentoAsignado });
+  if (supabaseClient && t.id) {
+    const dbTid = isNaN(Number(t.id)) ? t.id : Number(t.id);
+    await supabaseClient.from('talents').update({
+      disponibilidad: 'Inmediata',
+      asignacion: null
+    }).eq('id', dbTid);
+  }
+
   showToast(`${t.nombre} desasignado`, 'info');
+  renderClientList();
+  if (VX.currentSection === 'clientes') renderClientDetail(c.id);
+  if (VX.currentSection === 'propuestas') renderPropuestas();
 }
 
 function openNewCallModal(clientId) {
@@ -1872,29 +1931,64 @@ async function fetchFromSupabase() {
 
     const { data: clientsData, error: cErr } = await supabaseClient.from('clients').select('*').order('id', { ascending: true });
     if (!cErr && clientsData && clientsData.length > 0) {
-      VX.clients = clientsData.map(c => ({
-        id: c.id,
-        nombre: c.nombre || c.empresa || 'Cliente B2B',
-        sector: c.industria || 'Tech',
-        sede: c.pais || 'LATAM',
-        zona: 'UTC-3',
-        tier: 1,
-        estado: 'Activo',
-        contrato: 'MSA Vigente',
-        pago: 'Net 30',
-        stakeholder: {
-          nombre: c.contacto_principal || 'Contacto Principal',
-          cargo: 'Lead Contact',
-          email: c.email || '',
-          telefono: c.telefono || ''
-        },
-        necesidades: c.necesidades || '',
-        notas: c.notas || '',
-        propuestaTexto: c.propuestaTexto || c.propuesta_texto || '',
-        archivos: Array.isArray(c.archivos) ? c.archivos : (typeof c.archivos === 'string' ? JSON.parse(c.archivos || '[]') : []),
-        talentoAsignado: Array.isArray(c.talentoAsignado) ? c.talentoAsignado : [],
-        calls: Array.isArray(c.calls) ? c.calls : []
-      }));
+      VX.clients = clientsData.map(c => {
+        let rawNotas = c.notas || '';
+        let rawNec = c.necesidades || '';
+
+        // Extract embedded archivos if present
+        let extractedArchivos = Array.isArray(c.archivos) ? c.archivos : [];
+        if (extractedArchivos.length === 0 && (typeof rawNotas === 'string') && rawNotas.includes('[ARCHIVOS]')) {
+          const match = rawNotas.match(/\[ARCHIVOS\](.*?)\[\/ARCHIVOS\]/s);
+          if (match && match[1]) {
+            try { extractedArchivos = JSON.parse(match[1]); } catch(e){}
+          }
+        }
+        const cleanNotas = typeof rawNotas === 'string' ? rawNotas.replace(/\[ARCHIVOS\].*?\[\/ARCHIVOS\]/s, '').trim() : rawNotas;
+
+        // Extract embedded propuestaTexto if present
+        let extractedPropuesta = c.propuestaTexto || c.propuesta_texto || '';
+        if (!extractedPropuesta && (typeof rawNec === 'string') && rawNec.includes('[PROPUESTA]')) {
+          const match = rawNec.match(/\[PROPUESTA\](.*?)\[\/PROPUESTA\]/s);
+          if (match && match[1]) {
+            extractedPropuesta = match[1];
+          }
+        }
+        const cleanNec = typeof rawNec === 'string' ? rawNec.replace(/\[PROPUESTA\].*?\[\/PROPUESTA\]/s, '').trim() : rawNec;
+
+        let parsedCalls = [];
+        try {
+          parsedCalls = Array.isArray(c.calls) ? c.calls : (typeof c.calls === 'string' ? JSON.parse(c.calls || '[]') : []);
+        } catch(e) { parsedCalls = []; }
+
+        let parsedTalentoAsignado = [];
+        try {
+          parsedTalentoAsignado = Array.isArray(c.talentoAsignado) ? c.talentoAsignado : (typeof c.talentoAsignado === 'string' ? JSON.parse(c.talentoAsignado || '[]') : []);
+        } catch(e) { parsedTalentoAsignado = []; }
+
+        return {
+          id: c.id,
+          nombre: c.nombre || c.empresa || 'Cliente B2B',
+          sector: c.industria || 'Tech',
+          sede: c.pais || 'LATAM',
+          zona: 'UTC-3',
+          tier: 1,
+          estado: c.estado || 'Activo',
+          contrato: 'MSA Vigente',
+          pago: 'Net 30',
+          stakeholder: {
+            nombre: c.contacto_principal || 'Contacto Principal',
+            cargo: 'Lead Contact',
+            email: c.email || '',
+            telefono: c.telefono || ''
+          },
+          necesidades: cleanNec,
+          notas: cleanNotas,
+          propuestaTexto: extractedPropuesta,
+          archivos: extractedArchivos,
+          talentoAsignado: parsedTalentoAsignado,
+          calls: parsedCalls
+        };
+      });
       if (!VX.activeclientId && VX.clients.length > 0) VX.activeclientId = VX.clients[0].id;
       if (VX.currentSection === 'clientes') renderClientes();
     }
@@ -2066,6 +2160,53 @@ function toggleInlineEdit(clientId, field) {
   }
 }
 
+async function updateClientInSupabase(clientId, payload) {
+  if (!supabaseClient || !clientId) return true;
+  const dbId = isNaN(Number(clientId)) ? clientId : Number(clientId);
+  
+  let updateObj = { ...payload };
+
+  // Try direct update with current fields
+  let { error } = await supabaseClient.from('clients').update(updateObj).eq('id', dbId);
+
+  // If column error occurs, fallback to embedding in notas/necesidades
+  if (error && error.message && (error.message.includes('Could not find') || error.message.includes('column'))) {
+    console.warn("Columna no existe en Supabase, aplicando serialización de compatibilidad:", error.message);
+    
+    // Fetch existing client row
+    const { data: existingRows } = await supabaseClient.from('clients').select('notas, necesidades').eq('id', dbId);
+    let existingNotas = existingRows?.[0]?.notas || '';
+    let existingNec = existingRows?.[0]?.necesidades || '';
+
+    // If archivos updated, embed in notas
+    if ('archivos' in updateObj) {
+      const archivosJson = JSON.stringify(updateObj.archivos || []);
+      existingNotas = existingNotas.replace(/\[ARCHIVOS\].*?\[\/ARCHIVOS\]/s, '').trim();
+      existingNotas += `\n[ARCHIVOS]${archivosJson}[/ARCHIVOS]`;
+      updateObj.notas = existingNotas;
+      delete updateObj.archivos;
+    }
+
+    // If propuestaTexto updated, embed in necesidades
+    if ('propuestaTexto' in updateObj) {
+      const propText = updateObj.propuestaTexto || '';
+      existingNec = existingNec.replace(/\[PROPUESTA\].*?\[\/PROPUESTA\]/s, '').trim();
+      existingNec += `\n[PROPUESTA]${propText}[/PROPUESTA]`;
+      updateObj.necesidades = existingNec;
+      delete updateObj.propuestaTexto;
+    }
+
+    const retry = await supabaseClient.from('clients').update(updateObj).eq('id', dbId);
+    error = retry.error;
+  }
+
+  if (error) {
+    console.error("Error actualizando cliente en Supabase:", error.message);
+    return false;
+  }
+  return true;
+}
+
 async function saveInlineClientField(clientId, field) {
   const c = VX.clients.find(x => String(x.id) === String(clientId));
   if (!c) return;
@@ -2083,21 +2224,13 @@ async function saveInlineClientField(clientId, field) {
   const newValue = textarea.value.trim();
   c[field] = newValue;
 
-  if (supabaseClient && c.id) {
-    const dbId = isNaN(Number(c.id)) ? c.id : Number(c.id);
-    const { error } = await supabaseClient
-      .from('clients')
-      .update({ [field]: newValue })
-      .eq('id', dbId);
+  const ok = await updateClientInSupabase(c.id, { [field]: newValue });
 
-    if (error) {
-      console.error('Error actualizando cliente en Supabase:', error);
-      showToast('Error al guardar cambios en Supabase: ' + error.message, 'error');
-      return;
-    }
+  if (ok) {
+    showToast('Cambios guardados correctamente ✓', 'success');
+  } else {
+    showToast('Cambios guardados localmente ✓', 'info');
   }
-
-  showToast('Cambios guardados correctamente ✓', 'success');
 
   if (viewEl) {
     viewEl.textContent = newValue || 'Sin información registrada. Habilitá edición para agregar texto.';
@@ -2130,10 +2263,7 @@ async function handleClientFileUpload(clientId, inputEl) {
   };
   c.archivos.push(fileObj);
 
-  if (supabaseClient && c.id) {
-    const dbId = isNaN(Number(c.id)) ? c.id : Number(c.id);
-    await supabaseClient.from('clients').update({ archivos: c.archivos }).eq('id', dbId);
-  }
+  await updateClientInSupabase(c.id, { archivos: c.archivos });
 
   showToast(`Archivo "${file.name}" subido correctamente ✓`, 'success');
   renderClientDetail(clientId);
@@ -2145,10 +2275,7 @@ async function deleteClientFile(clientId, fileId) {
 
   c.archivos = (c.archivos || []).filter(f => String(f.id) !== String(fileId));
 
-  if (supabaseClient && c.id) {
-    const dbId = isNaN(Number(c.id)) ? c.id : Number(c.id);
-    await supabaseClient.from('clients').update({ archivos: c.archivos }).eq('id', dbId);
-  }
+  await updateClientInSupabase(c.id, { archivos: c.archivos });
 
   showToast('Archivo eliminado', 'info');
   renderClientDetail(clientId);
@@ -2169,14 +2296,11 @@ async function markClientCompleted(clientId) {
     }
   });
 
-  if (supabaseClient && c.id) {
-    const dbId = isNaN(Number(c.id)) ? c.id : Number(c.id);
-    await supabaseClient.from('clients').update({
-      estado: 'Completed',
-      talentoAsignado: c.talentoAsignado,
-      propuestaTexto: c.propuestaTexto || ''
-    }).eq('id', dbId);
-  }
+  await updateClientInSupabase(c.id, {
+    estado: 'Completed',
+    talentoAsignado: c.talentoAsignado,
+    propuestaTexto: c.propuestaTexto || ''
+  });
 
   showToast(`Cliente "${c.nombre}" marcado como COMPLETED ✓ Propuesta finalizada.`, 'success');
   renderClientList();
