@@ -2074,37 +2074,39 @@ async function saveClientToSupabase(e) {
 
   if (!nombre) { showToast('El nombre del cliente es requerido', 'error'); return; }
 
-  // Full payload — uses column names as they exist in Supabase after migration
-  const fullPayload = {
+  // Columns confirmed to exist: id, nombre, empresa, industria, pais, email, telefono,
+  // contacto_principal, logo, created_at, estado, calls, talentoAsignado, archivos, propuestaTexto
+  // notas + necesidades added via SQL migration
+  const payload = {
     nombre,
+    empresa: nombre,
     industria,
     pais,
     contacto_principal: contacto,
     telefono,
     email,
-    necesidades,
-    notas,
     estado: 'Activo'
   };
 
-  // Minimal payload fallback (only columns guaranteed to exist)
-  const minPayload = { nombre, notas: `${necesidades}\n${notas}`.trim() };
+  // Add notas/necesidades only if they exist (after migration)
+  if (necesidades) payload.necesidades = necesidades;
+  if (notas) payload.notas = notas;
 
   if (supabaseClient) {
     if (id) {
-      // UPDATE existing
-      const { error } = await supabaseClient.from('clients').update(fullPayload).eq('id', id);
+      const { error } = await supabaseClient.from('clients').update(payload).eq('id', id);
       if (error) {
         console.error('Error actualizando cliente:', error);
         showToast(`Error: ${error.message}`, 'error');
         return;
       }
     } else {
-      // INSERT new — try full payload first, then minimal
-      let { data, error } = await supabaseClient.from('clients').insert([fullPayload]).select();
+      let { data, error } = await supabaseClient.from('clients').insert([payload]).select();
       if (error) {
-        console.warn('Insert completo falló, intentando payload mínimo:', error.message);
-        const retry = await supabaseClient.from('clients').insert([minPayload]).select();
+        // Retry with only guaranteed columns
+        console.warn('Insert falló, reintentando sin notas/necesidades:', error.message);
+        const safe = { nombre, empresa: nombre, industria, pais, contacto_principal: contacto, telefono, email, estado: 'Activo' };
+        const retry = await supabaseClient.from('clients').insert([safe]).select();
         if (retry.error) {
           console.error('Error al insertar cliente:', retry.error);
           showToast(`Error Supabase: ${retry.error.message}`, 'error');
@@ -2112,7 +2114,7 @@ async function saveClientToSupabase(e) {
         }
         data = retry.data;
       }
-      if (data && data.length > 0) fullPayload.id = data[0].id;
+      if (data && data.length > 0) payload.id = data[0].id;
     }
   }
 
@@ -2189,68 +2191,29 @@ function toggleInlineEdit(clientId, field) {
 async function updateClientInSupabase(clientId, payload) {
   if (!supabaseClient || !clientId) return true;
   const dbId = isNaN(Number(clientId)) ? clientId : Number(clientId);
-  
-  let updateObj = { ...payload };
 
-  // Try direct update with current fields
-  let { error } = await supabaseClient.from('clients').update(updateObj).eq('id', dbId);
+  // Only send fields that actually exist in the clients table
+  const KNOWN_COLUMNS = new Set([
+    'nombre','empresa','industria','pais','email','telefono','contacto_principal',
+    'logo','estado','calls','talentoAsignado','archivos','propuestaTexto','notas','necesidades'
+  ]);
 
-  // If column error occurs, fallback to embedding complex fields in notas/necesidades
-  if (error && error.message && (error.message.includes('Could not find') || error.message.includes('column'))) {
-    console.warn('Columna no existe en Supabase, serialización de compatibilidad:', error.message);
-
-    const { data: existingRows } = await supabaseClient.from('clients').select('notas, necesidades').eq('id', dbId);
-    let existingNotas = existingRows?.[0]?.notas || '';
-    let existingNec = existingRows?.[0]?.necesidades || '';
-
-    // archivos → embedded in notas
-    if ('archivos' in updateObj) {
-      const archivosJson = JSON.stringify(updateObj.archivos || []);
-      existingNotas = existingNotas.replace(/\[ARCHIVOS\].*?\[\/ARCHIVOS\]/s, '').trim();
-      existingNotas += `\n[ARCHIVOS]${archivosJson}[/ARCHIVOS]`;
-      updateObj.notas = existingNotas;
-      delete updateObj.archivos;
-    }
-
-    // propuestaTexto → embedded in necesidades
-    if ('propuestaTexto' in updateObj) {
-      const propText = updateObj.propuestaTexto || '';
-      existingNec = existingNec.replace(/\[PROPUESTA\].*?\[\/PROPUESTA\]/s, '').trim();
-      existingNec += `\n[PROPUESTA]${propText}[/PROPUESTA]`;
-      updateObj.necesidades = existingNec;
-      delete updateObj.propuestaTexto;
-    }
-
-    // calls → JSON serialized in notas
-    if ('calls' in updateObj) {
-      const callsJson = JSON.stringify(updateObj.calls || []);
-      existingNotas = (updateObj.notas || existingNotas).replace(/\[CALLS\].*?\[\/CALLS\]/s, '').trim();
-      existingNotas += `\n[CALLS]${callsJson}[/CALLS]`;
-      updateObj.notas = existingNotas;
-      delete updateObj.calls;
-    }
-
-    // talentoAsignado → JSON serialized in necesidades
-    if ('talentoAsignado' in updateObj) {
-      const taJson = JSON.stringify(updateObj.talentoAsignado || []);
-      existingNec = (updateObj.necesidades || existingNec).replace(/\[TALENTO\].*?\[\/TALENTO\]/s, '').trim();
-      existingNec += `\n[TALENTO]${taJson}[/TALENTO]`;
-      updateObj.necesidades = existingNec;
-      delete updateObj.talentoAsignado;
-    }
-
-    // estado — try to store directly (should exist in most schemas)
-    // if still failing on retry, just log it
-    const retry = await supabaseClient.from('clients').update(updateObj).eq('id', dbId);
-    error = retry.error;
+  const updateObj = {};
+  for (const [k, v] of Object.entries(payload)) {
+    if (KNOWN_COLUMNS.has(k)) updateObj[k] = v;
+    else console.warn('Campo ignorado (no existe en tabla clients):', k);
   }
 
+  if (Object.keys(updateObj).length === 0) return true;
+
+  const { error } = await supabaseClient.from('clients').update(updateObj).eq('id', dbId);
   if (error) {
     console.error('Error actualizando cliente en Supabase:', error.message);
     return false;
   }
   return true;
 }
+
 
 async function saveInlineClientField(clientId, field) {
   const c = VX.clients.find(x => String(x.id) === String(clientId));
