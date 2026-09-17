@@ -2072,41 +2072,55 @@ async function saveClientToSupabase(e) {
   const necesidades = document.getElementById('clientNecesidades')?.value?.trim() || '';
   const notas = document.getElementById('clientNotas')?.value?.trim() || '';
 
-  if (!nombre) return;
+  if (!nombre) { showToast('El nombre del cliente es requerido', 'error'); return; }
 
-  const payload = {
-    nombre: nombre,
-    empresa: nombre,
-    industria: industria,
-    pais: pais,
+  // Full payload — uses column names as they exist in Supabase after migration
+  const fullPayload = {
+    nombre,
+    industria,
+    pais,
     contacto_principal: contacto,
-    telefono: telefono,
-    email: email,
-    necesidades: necesidades,
-    notas: notas
+    telefono,
+    email,
+    necesidades,
+    notas,
+    estado: 'Activo'
   };
+
+  // Minimal payload fallback (only columns guaranteed to exist)
+  const minPayload = { nombre, notas: `${necesidades}\n${notas}`.trim() };
 
   if (supabaseClient) {
     if (id) {
-      const { error } = await supabaseClient.from('clients').update(payload).eq('id', id);
+      // UPDATE existing
+      const { error } = await supabaseClient.from('clients').update(fullPayload).eq('id', id);
       if (error) {
-        showToast('Error al actualizar cliente en Supabase', 'error');
+        console.error('Error actualizando cliente:', error);
+        showToast(`Error: ${error.message}`, 'error');
         return;
       }
     } else {
-      const { data, error } = await supabaseClient.from('clients').insert([payload]).select();
+      // INSERT new — try full payload first, then minimal
+      let { data, error } = await supabaseClient.from('clients').insert([fullPayload]).select();
       if (error) {
-        showToast('Error al guardar cliente en Supabase', 'error');
-        return;
+        console.warn('Insert completo falló, intentando payload mínimo:', error.message);
+        const retry = await supabaseClient.from('clients').insert([minPayload]).select();
+        if (retry.error) {
+          console.error('Error al insertar cliente:', retry.error);
+          showToast(`Error Supabase: ${retry.error.message}`, 'error');
+          return;
+        }
+        data = retry.data;
       }
-      if (data && data.length > 0) payload.id = data[0].id;
+      if (data && data.length > 0) fullPayload.id = data[0].id;
     }
   }
 
   closeClientModal();
-  showToast('Cliente guardado correctamente en Supabase ✓', 'success');
+  showToast('Cliente guardado correctamente ✓', 'success');
   await fetchFromSupabase();
 }
+
 
 async function deleteTalentDirectly(id) {
   if (!confirm('¿Seguro que querés eliminar este talento de Supabase?')) return;
