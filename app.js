@@ -482,6 +482,9 @@ function openTalentModal(id) {
       <button onclick="addTalentToProposal(${t.id}); closeTalentModal();" class="flex-1 py-2.5 rounded-lg bg-primary-container text-on-primary-container text-label-lg font-label font-bold hover:bg-primary transition-all flex items-center justify-center gap-2">
         <span class="material-symbols-outlined text-[18px]">co_present</span>Agregar a Propuesta
       </button>
+      <button onclick="openTalentEdit('${t.id}')" class="px-4 py-2.5 rounded-lg border border-primary/30 text-primary text-label-lg font-label font-bold hover:bg-surface-container-low transition-all flex items-center gap-1">
+        <span class="material-symbols-outlined text-[18px]">edit</span>Editar
+      </button>
       <button onclick="deleteTalentDirectly('${t.id}')" class="px-4 py-2.5 rounded-lg bg-error-container text-error text-label-lg font-label font-bold hover:bg-error/20 transition-all flex items-center gap-1">
         <span class="material-symbols-outlined text-[18px]">delete</span>Eliminar
       </button>
@@ -490,6 +493,132 @@ function openTalentModal(id) {
   `;
   modal.classList.remove('hidden');
   setTimeout(() => modal.querySelector('.modal-panel').classList.add('translate-x-0'), 10);
+}
+
+// ---- EDITAR TALENTO DESDE SU FICHA ----
+function openTalentEdit(id) {
+  const t = VX.talents.find(x => String(x.id) === String(id));
+  if (!t) return;
+  const content = document.getElementById('talentModalContent');
+  const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const inputCls = 'w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-canvas text-body-md font-sans focus:outline-none focus:border-primary';
+  const labelCls = 'block text-label-sm font-label font-bold text-text-muted uppercase tracking-wider mb-1';
+  const field = (label, id, value, type = 'text') => `<div><label class="${labelCls}">${label}</label><input id="${id}" type="${type}" value="${esc(value)}" class="${inputCls}"/></div>`;
+  const select = (label, id, value, options) => `<div><label class="${labelCls}">${label}</label><select id="${id}" class="${inputCls}">${options.map(o => `<option ${o === value ? 'selected' : ''}>${o}</option>`).join('')}</select></div>`;
+
+  content.innerHTML = `
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-headline-lg font-sans font-bold text-text-heading">Editar ficha</h2>
+      <button onclick="openTalentModal('${t.id}')" class="p-2 rounded-lg text-text-muted hover:text-text-heading hover:bg-surface-container transition-all">
+        <span class="material-symbols-outlined text-[22px]">close</span>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-5">
+      ${field('Nombre', 'editNombre', t.nombre)}
+      ${field('Rol', 'editRol', t.rol)}
+      ${select('Seniority', 'editSeniority', t.seniority, ['Junior', 'Semi-Senior', 'Senior', 'Lead'])}
+      ${select('Disponibilidad', 'editDisponibilidad', t.disponibilidad, ['Inmediata', 'Parcial', 'Asignado'])}
+      ${select('Inglés', 'editIngles', t.ingles, ['A2', 'B1', 'B2', 'C1', 'C2'])}
+      ${select('País', 'editPais', t.pais, ['Argentina', 'Colombia', 'México', 'Chile', 'Uruguay', 'Perú', 'Otro'])}
+      ${field('Experiencia (años)', 'editExperiencia', t.experiencia, 'number')}
+      ${field('Tarifa (USD/h)', 'editTarifa', t.tarifa || '', 'number')}
+      ${field('Email', 'editEmail', t.email, 'email')}
+      ${field('Teléfono', 'editTelefono', t.telefono)}
+      <div class="col-span-2">${field('LinkedIn', 'editLinkedin', t.linkedin)}</div>
+    </div>
+
+    <div class="mb-5">
+      <label class="${labelCls}">Resumen</label>
+      <textarea id="editResumen" rows="4" class="w-full px-3 py-2 rounded-xl border border-border-strong bg-surface-canvas text-body-md font-sans focus:outline-none focus:border-primary">${esc(t.resumen)}</textarea>
+    </div>
+
+    <div class="mb-6">
+      <label class="${labelCls}">Stack / Habilidades</label>
+      <div id="editSkills" class="flex flex-wrap gap-2 mb-2">
+        ${t.stack.map(s => editSkillChip(s)).join('')}
+      </div>
+      <div class="flex gap-2">
+        <input id="editNewSkill" type="text" placeholder="Agregar habilidad (Enter)" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditSkill();}" class="${inputCls}"/>
+        <button onclick="addEditSkill()" class="px-4 rounded-xl bg-surface-container text-primary text-label-lg font-label font-bold hover:bg-surface-container-low transition-all" type="button">Agregar</button>
+      </div>
+    </div>
+
+    <div class="flex gap-3">
+      <button id="saveTalentEditBtn" onclick="saveTalentEdit('${t.id}')" class="flex-1 py-2.5 rounded-lg bg-primary-container text-on-primary-container text-label-lg font-label font-bold hover:bg-primary transition-all flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">save</span>Guardar cambios
+      </button>
+      <button onclick="openTalentModal('${t.id}')" class="px-4 py-2.5 rounded-lg border border-border-strong text-text-heading text-label-lg font-label font-bold hover:bg-surface-container-low transition-all">Cancelar</button>
+    </div>
+  `;
+}
+
+function editSkillChip(s) {
+  const safe = String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  return `<span data-skill="${safe}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container border border-border-subtle text-text-body text-label-md font-label font-semibold">
+    <span class="material-symbols-outlined text-[12px] text-primary">${stackIcon(s)}</span>${safe}
+    <button onclick="this.parentElement.remove()" class="ml-0.5 text-text-muted hover:text-error" type="button"><span class="material-symbols-outlined text-[14px]">close</span></button>
+  </span>`;
+}
+
+function addEditSkill() {
+  const input = document.getElementById('editNewSkill');
+  const container = document.getElementById('editSkills');
+  if (!input || !container) return;
+  const s = input.value.trim();
+  if (!s) return;
+  const exists = [...container.querySelectorAll('[data-skill]')].some(el => el.dataset.skill.toLowerCase() === s.toLowerCase());
+  if (!exists) container.insertAdjacentHTML('beforeend', editSkillChip(s));
+  input.value = '';
+  input.focus();
+}
+
+async function saveTalentEdit(id) {
+  const t = VX.talents.find(x => String(x.id) === String(id));
+  if (!t) return;
+  const val = elId => document.getElementById(elId)?.value?.trim() || '';
+  const zonaMap = { 'Argentina': 'GMT-3', 'Colombia': 'GMT-5', 'México': 'GMT-6', 'Chile': 'GMT-4', 'Uruguay': 'GMT-3', 'Perú': 'GMT-5' };
+  const stack = [...document.querySelectorAll('#editSkills [data-skill]')].map(el => el.dataset.skill);
+  const pais = val('editPais');
+
+  const changes = {
+    nombre: val('editNombre') || t.nombre,
+    rol: val('editRol') || t.rol,
+    seniority: val('editSeniority'),
+    disponibilidad: val('editDisponibilidad'),
+    ingles: val('editIngles'),
+    pais,
+    zona: zonaMap[pais] || t.zona,
+    experiencia: parseFloat(val('editExperiencia')) || 0,
+    tarifa: parseInt(val('editTarifa')) || 0,
+    email: val('editEmail'),
+    telefono: val('editTelefono'),
+    linkedin: val('editLinkedin'),
+    resumen: val('editResumen'),
+    stack
+  };
+
+  const btn = document.getElementById('saveTalentEditBtn');
+  if (btn) btn.disabled = true;
+
+  if (supabaseClient) {
+    let { error } = await supabaseClient.from('talents').update(changes).eq('id', t.id);
+    if (error) {
+      // Igual que en el alta: reintentar con stack serializado para columnas de texto
+      ({ error } = await supabaseClient.from('talents').update({ ...changes, stack: JSON.stringify(stack) }).eq('id', t.id));
+    }
+    if (error) {
+      console.error('Error actualizando talento:', error);
+      showToast(`Error Supabase: ${error.message}`, 'error');
+      if (btn) btn.disabled = false;
+      return;
+    }
+  }
+
+  Object.assign(t, changes);
+  applyFilters();
+  openTalentModal(t.id);
+  showToast('Ficha actualizada en Supabase ✓', 'success');
 }
 
 function closeTalentModal() {
