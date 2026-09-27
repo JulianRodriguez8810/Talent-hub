@@ -1352,7 +1352,7 @@ function parseCVContent(text, filename) {
     parsedTelefono: telefono,
     parsedLinkedin: linkedin,
     parsedExperiencia: experiencia,
-    parsedTarifa: Math.max(30, experiencia * 10),
+    parsedTarifa: '', // la tarifa se carga siempre a mano
     parsedPais: pais,
     parsedIngles: ingles,
     parsedSeniority: seniority,
@@ -1834,6 +1834,65 @@ function showToast(msg, type = 'info') {
   setTimeout(() => toast.remove(), 3200);
 }
 
+// ---- NOTIFICATIONS ----
+// Últimos talentos y clientes cargados (según created_at en Supabase)
+function getNotifications() {
+  const items = [
+    ...VX.talents.filter(t => t.created_at).map(t => ({ type: 'talent', id: t.id, date: t.created_at, title: t.nombre, sub: `Nuevo talento · ${t.rol}` })),
+    ...VX.clients.filter(c => c.created_at).map(c => ({ type: 'client', id: c.id, date: c.created_at, title: c.nombre, sub: `Nuevo cliente · ${c.sector}` }))
+  ];
+  return items.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+}
+
+function getNotifLastSeen() {
+  try { return Number(localStorage.getItem('vx_notif_seen')) || 0; } catch(e) { return 0; }
+}
+
+function updateNotifDot() {
+  const dot = document.getElementById('notifDot');
+  if (!dot) return;
+  const lastSeen = getNotifLastSeen();
+  dot.classList.toggle('hidden', !getNotifications().some(n => new Date(n.date).getTime() > lastSeen));
+}
+
+function toggleNotifications(e) {
+  e.stopPropagation();
+  const panel = document.getElementById('notifPanel');
+  if (!panel) return;
+  if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+
+  const lastSeen = getNotifLastSeen();
+  const items = getNotifications();
+  panel.innerHTML = `
+    <div class="px-4 py-3 border-b border-border-subtle text-label-lg font-label font-bold text-text-heading">Notificaciones</div>
+    ${items.length === 0 ? '<div class="px-4 py-6 text-body-sm font-sans text-text-muted text-center">Sin novedades</div>' : items.map(n => `
+      <button onclick="openNotification('${n.type}', '${n.id}')" class="w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-surface-container-low transition-all border-b border-border-subtle last:border-b-0">
+        <span class="material-symbols-outlined text-[20px] text-primary">${n.type === 'talent' ? 'person_add' : 'domain_add'}</span>
+        <span class="flex-1 min-w-0">
+          <span class="block text-label-md font-label font-bold text-text-heading truncate">${n.title}</span>
+          <span class="block text-body-sm font-sans text-text-muted truncate">${n.sub}</span>
+          <span class="block text-label-sm font-label text-text-muted">${new Date(n.date).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}</span>
+        </span>
+        ${new Date(n.date).getTime() > lastSeen ? '<span class="mt-1.5 w-2 h-2 rounded-full bg-error shrink-0"></span>' : ''}
+      </button>`).join('')}`;
+  panel.classList.remove('hidden');
+
+  try { localStorage.setItem('vx_notif_seen', String(Date.now())); } catch(err) {}
+  updateNotifDot();
+}
+
+function openNotification(type, id) {
+  document.getElementById('notifPanel')?.classList.add('hidden');
+  if (type === 'talent') {
+    navigate('talentos');
+    openTalentModal(id);
+  } else {
+    goToClient(VX.clients.find(c => String(c.id) === String(id))?.id ?? id);
+  }
+}
+
+document.addEventListener('click', () => document.getElementById('notifPanel')?.classList.add('hidden'));
+
 // ---- LOGOUT ----
 function logout() {
   sessionStorage.removeItem('vx_user');
@@ -1906,7 +1965,7 @@ async function fetchFromSupabase() {
           zona: t.zona || 'GMT-3',
           disponibilidad: t.disponibilidad || 'Inmediata',
           ingles: t.ingles || 'C1',
-          tarifa: Number(t.tarifa) || 50,
+          tarifa: Number(t.tarifa) || 0,
           experiencia: Number(t.experiencia) || 3,
           stack: parsedStack.length > 0 ? parsedStack : ['IT'],
           certificaciones: parsedCerts,
@@ -1919,7 +1978,8 @@ async function fetchFromSupabase() {
           asignacion: parsedAsig,
           avatar: t.avatar || null,
           cv_url: t.cv_url || null,
-          activo: t.activo !== false
+          activo: t.activo !== false,
+          created_at: t.created_at || null
         };
       });
 
@@ -1979,6 +2039,7 @@ async function fetchFromSupabase() {
 
         return {
           id: c.id,
+          created_at: c.created_at || null,
           nombre: c.nombre || c.empresa || 'Cliente B2B',
           sector: c.industria || 'Tech',
           sede: c.pais || 'LATAM',
@@ -2004,6 +2065,7 @@ async function fetchFromSupabase() {
       if (!VX.activeclientId && VX.clients.length > 0) VX.activeclientId = VX.clients[0].id;
       if (VX.currentSection === 'clientes') renderClientes();
     }
+    updateNotifDot();
   } catch (err) {
     console.error('Error sincronizando con Supabase:', err);
   }
@@ -2127,7 +2189,7 @@ async function saveClientToSupabase(e) {
 async function deleteTalentDirectly(id) {
   if (!confirm('¿Seguro que querés eliminar este talento de Supabase?')) return;
   
-  const talent = VX.talents.find(t => t.id === id);
+  const talent = VX.talents.find(t => String(t.id) === String(id));
   if (talent && talent.cv_url && supabaseClient) {
     try {
       const fileName = talent.cv_url.split('/').pop();
@@ -2145,9 +2207,9 @@ async function deleteTalentDirectly(id) {
     }
   }
 
-  VX.talents = VX.talents.filter(t => t.id !== id);
-  VX.filteredTalents = VX.filteredTalents.filter(t => t.id !== id);
-  VX.selectedTalents.delete(id);
+  VX.talents = VX.talents.filter(t => String(t.id) !== String(id));
+  VX.filteredTalents = VX.filteredTalents.filter(t => String(t.id) !== String(id));
+  VX.selectedTalents.delete(String(id));
   closeTalentModal();
   showToast('Talento eliminado correctamente de Supabase', 'success');
   renderTalentGrid();
@@ -2391,6 +2453,7 @@ function initRealtimeSubscriptions() {
       }
 
       applyFilters();
+      updateNotifDot();
     })
     .subscribe();
 
@@ -2421,6 +2484,7 @@ function initRealtimeSubscriptions() {
         renderClientDetail(VX.activeclientId);
       }
       if (VX.currentSection === 'propuestas') renderPropuestas();
+      updateNotifDot();
     })
     .subscribe();
 
@@ -2442,12 +2506,13 @@ function mapTalentRow(t) {
     id: t.id, nombre: t.nombre || 'Candidato IT', rol: t.rol || 'Software Engineer',
     seniority: t.seniority || 'Senior', pais: t.pais || 'Argentina', zona: t.zona || 'GMT-3',
     disponibilidad: t.disponibilidad || 'Inmediata', ingles: t.ingles || 'C1',
-    tarifa: Number(t.tarifa) || 50, experiencia: Number(t.experiencia) || 3,
+    tarifa: Number(t.tarifa) || 0, experiencia: Number(t.experiencia) || 3,
     stack: parsedStack.length > 0 ? parsedStack : ['IT'], certificaciones: parsedCerts,
     email: t.email || '', telefono: t.telefono || '', linkedin: t.linkedin || '',
     resumen: t.resumen || 'Sin resumen registrado.', proyectos: parsedProjs,
     match: Number(t.match) || 85, asignacion: parsedAsig,
-    avatar: t.avatar || null, cv_url: t.cv_url || null, activo: t.activo !== false
+    avatar: t.avatar || null, cv_url: t.cv_url || null, activo: t.activo !== false,
+    created_at: t.created_at || null
   };
 }
 
@@ -2462,6 +2527,7 @@ function mapClientRow(c) {
 
   return {
     id: c.id,
+    created_at: c.created_at || null,
     nombre: c.nombre || c.empresa || 'Cliente B2B',
     sector: c.industria || 'Tech',
     sede: c.pais || 'LATAM',

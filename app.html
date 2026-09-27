@@ -120,10 +120,11 @@
 
       <!-- Notifications -->
       <div class="relative">
-        <button class="p-2 rounded-xl text-text-muted hover:text-text-heading hover:bg-surface-container-low transition-all relative" type="button">
+        <button onclick="toggleNotifications(event)" class="p-2 rounded-xl text-text-muted hover:text-text-heading hover:bg-surface-container-low transition-all relative" type="button" title="Notificaciones">
           <span class="material-symbols-outlined text-[22px]">notifications</span>
-          <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span>
+          <span id="notifDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span>
         </button>
+        <div id="notifPanel" onclick="event.stopPropagation()" class="hidden absolute right-0 top-12 w-80 max-h-96 overflow-y-auto bg-surface-card rounded-xl shadow-xl border border-border-subtle z-[100]"></div>
       </div>
 
       <!-- User avatar -->
