@@ -629,16 +629,7 @@ function closeTalentModal() {
 
 // ---- RENDER CLIENTS ----
 function renderClientes() {
-  renderClientList();
-  if (VX.activeclientId) {
-    renderClientDetail(VX.activeclientId);
-  } else {
-    renderClientDetail(VX.clients[0].id);
-    VX.activeclientId = VX.clients[0].id;
-  }
-}
-
-function renderClientes() {
+  sortClientsByLastUse();
   renderClientList();
   if (!VX.activeclientId && VX.clients.length > 0) {
     VX.activeclientId = VX.clients[0].id;
@@ -648,10 +639,27 @@ function renderClientes() {
   }
 }
 
+// Ordena por último uso (columna ultimo_uso en Supabase), si no hay usa la fecha de alta
+function sortClientsByLastUse() {
+  const ts = c => new Date(c.ultimo_uso || c.created_at || 0).getTime();
+  VX.clients.sort((a, b) => ts(b) - ts(a));
+}
+
+function markClientUsed(id) {
+  const c = VX.clients.find(x => String(x.id) === String(id));
+  if (!c) return;
+  c.ultimo_uso = new Date().toISOString();
+  if (supabaseClient) {
+    supabaseClient.from('clients').update({ ultimo_uso: c.ultimo_uso }).eq('id', c.id)
+      .then(({ error }) => { if (error) console.warn('No se pudo guardar ultimo_uso:', error.message); });
+  }
+}
+
 function renderClientList() {
   const mainList = document.getElementById('clientList');
   const sidebarList = document.getElementById('sidebarClientList');
 
+  sortClientsByLastUse();
   const html = VX.clients.map(c => {
     const active = String(VX.activeclientId) === String(c.id);
     const isCompleted = c.estado === 'Completed' || c.estado === 'Completado';
@@ -687,33 +695,21 @@ function renderClientList() {
   }).join('');
 
   if (mainList) mainList.innerHTML = html;
-  if (sidebarList) sidebarList.innerHTML = html;
-  renderTopClientSelector();
-}
-
-function renderTopClientSelector() {
-  const container = document.getElementById('topClientSelector');
-  if (!container) return;
-  container.innerHTML = VX.clients.map(c => {
-    const active = String(VX.activeclientId) === String(c.id);
-    const isCompleted = c.estado === 'Completed' || c.estado === 'Completado';
-    return `
-      <button onclick="selectClient('${c.id}')" class="px-3 py-1.5 rounded-full text-label-md font-label font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
-        active 
-          ? 'bg-primary text-on-primary shadow-md' 
-          : 'bg-surface-canvas text-text-heading hover:bg-surface-container border border-border-subtle hover:border-border-strong'
-      }">
-        <span class="w-2 h-2 rounded-full ${isCompleted ? 'bg-status-available' : (c.estado === 'Activo' ? 'bg-status-available' : 'bg-status-interviewing')}"></span>
-        ${c.nombre}
-        ${isCompleted ? '<span class="material-symbols-outlined text-[14px] text-emerald-300">verified</span>' : ''}
-      </button>
-    `;
-  }).join('');
+  if (sidebarList) {
+    sidebarList.innerHTML = html;
+    // Alto justo para 5 clientes; el resto se ve con la barra de scroll
+    const fifth = sidebarList.children[4];
+    if (sidebarList.offsetParent) sidebarList.style.maxHeight = fifth ? `${fifth.offsetTop - sidebarList.firstElementChild.offsetTop + fifth.offsetHeight + 2}px` : '';
+  }
+  const count = document.getElementById('clientCount');
+  if (count) count.textContent = VX.clients.length;
 }
 
 function selectClient(id) {
   VX.activeclientId = id;
+  markClientUsed(id);
   renderClientList();
+  document.getElementById('sidebarClientList')?.scrollTo({ top: 0, behavior: 'smooth' });
   renderClientDetail(id);
 }
 
@@ -1613,6 +1609,7 @@ async function confirmCVAndAdd() {
 // ---- PROPOSALS CLIENT-READY ----
 function selectProposalClient(clientId) {
   VX.activeclientId = clientId;
+  markClientUsed(clientId);
   renderPropuestas();
 }
 
@@ -2169,6 +2166,7 @@ async function fetchFromSupabase() {
         return {
           id: c.id,
           created_at: c.created_at || null,
+          ultimo_uso: c.ultimo_uso || null,
           nombre: c.nombre || c.empresa || 'Cliente B2B',
           sector: c.industria || 'Tech',
           sede: c.pais || 'LATAM',
@@ -2657,6 +2655,7 @@ function mapClientRow(c) {
   return {
     id: c.id,
     created_at: c.created_at || null,
+    ultimo_uso: c.ultimo_uso || null,
     nombre: c.nombre || c.empresa || 'Cliente B2B',
     sector: c.industria || 'Tech',
     sede: c.pais || 'LATAM',

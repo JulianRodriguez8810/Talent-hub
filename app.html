@@ -170,10 +170,10 @@
       <!-- Client list in sidebar when section is active -->
       <div id="sidebarClientListSection" class="hidden flex flex-col gap-2 pt-3 border-t border-border-subtle">
         <div class="flex items-center justify-between px-1">
-          <span class="text-label-sm font-label font-bold text-text-heading uppercase tracking-wider">Lista de Clientes</span>
+          <span class="text-label-sm font-label font-bold text-text-heading uppercase tracking-wider">Clientes <span id="clientCount" class="ml-1 px-1.5 py-0.5 rounded-full bg-surface-container text-primary normal-case">0</span></span>
           <button onclick="openNewClientModal()" class="text-[11px] font-label text-primary font-bold hover:underline">+ Nuevo</button>
         </div>
-        <div id="sidebarClientList" class="flex flex-col gap-1 max-h-64 overflow-y-auto pr-1">
+        <div id="sidebarClientList" class="flex flex-col gap-1 overflow-y-auto pr-1">
           <!-- Rendered by JS -->
         </div>
       </div>
@@ -406,21 +406,6 @@
             <span class="material-symbols-outlined text-[18px] text-primary">domain_add</span>+ Nuevo Cliente
           </button>
         </div>
-      </div>
-
-      <!-- Barra de navegación / Selección superior de clientes -->
-      <div class="bg-surface-card rounded-xl p-3 shadow-sm border border-border-subtle mb-5 overflow-x-auto flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3 overflow-x-auto py-0.5">
-          <span class="text-label-sm font-label text-text-muted font-bold uppercase tracking-wider shrink-0 px-1 flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-[18px] text-primary">domain</span> Cliente Activo:
-          </span>
-          <div id="topClientSelector" class="flex items-center gap-2 overflow-x-auto py-0.5 scrollbar-none">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-        <button onclick="openNewClientModal()" class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-container text-on-primary-container text-label-sm font-label font-bold hover:bg-primary transition-all shadow-sm">
-          <span class="material-symbols-outlined text-[16px]">domain_add</span>+ Nuevo Cliente
-        </button>
       </div>
 
       <!-- Detalle del cliente a Ancho Completo (Full Screen) -->
