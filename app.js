@@ -225,17 +225,14 @@ function renderTalentGrid() {
   const counts = {
     total: VX.talents.filter(t => t.activo !== false).length,
     bench: VX.talents.filter(t => t.disponibilidad === 'Inmediata' && t.activo !== false).length,
-    asignados: VX.talents.filter(t => t.asignacion && t.activo !== false).length,
-    matchAvg: Math.round(VX.talents.reduce((a, b) => a + (b.match || 80), 0) / (VX.talents.length || 1))
+    asignados: VX.talents.filter(t => t.asignacion && t.activo !== false).length
   };
   const totalEl = document.getElementById('metricTotal');
   const benchEl = document.getElementById('metricBench');
   const asigEl = document.getElementById('metricAsig');
-  const matchEl = document.getElementById('metricMatch');
   if (totalEl) totalEl.textContent = counts.total;
   if (benchEl) benchEl.textContent = counts.bench;
   if (asigEl) asigEl.textContent = counts.asignados;
-  if (matchEl) matchEl.textContent = `${counts.matchAvg}%`;
 
   if (VX.filteredTalents.length === 0) {
     grid.innerHTML = `
@@ -250,14 +247,9 @@ function renderTalentGrid() {
 
   grid.innerHTML = VX.filteredTalents.map(t => {
     const status = getStatusBadge(t.disponibilidad);
-    const matchColor = getMatchColor(t.match);
     const isSelected = VX.selectedTalents.has(String(t.id));
     const visibleStack = t.stack.slice(0, 3);
     const extraStack = t.stack.length - 3;
-
-    const m = Number(t.match) || 0;
-    const lvl = m >= 80 ? { label: 'Alto', on: 'bg-[#22C55E]', dot: 'bg-[#22C55E]' } : m >= 60 ? { label: 'Medio', on: 'bg-[#F5B400]', dot: 'bg-[#F5B400]' } : { label: 'Bajo', on: 'bg-[#F97316]', dot: 'bg-[#F97316]' };
-    const segs = Array.from({ length: 10 }, (_, i) => `<span class="match-seg ${i < Math.round(m / 10) ? lvl.on : ''}"></span>`).join('');
 
     return `
     <div class="talent-card group bg-surface-card rounded-[22px] p-4 flex flex-col gap-3 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_0_0_1px_rgba(17,17,17,0.04)] ${isSelected ? 'ring-2 ring-primary-container' : ''}">
@@ -273,22 +265,20 @@ function renderTalentGrid() {
           <h3 class="text-[15px] leading-5 font-sans font-semibold text-text-heading truncate group-hover:text-primary transition-colors">${t.nombre}</h3>
           <p class="text-[13px] leading-5 font-sans text-text-muted truncate">${t.rol} · ${t.seniority}</p>
         </div>
-        <span class="shrink-0 w-8 h-8 rounded-full bg-surface-container-low group-hover:bg-primary-container group-hover:text-on-primary-container text-text-muted flex items-center justify-center transition-colors">
-          <span class="material-symbols-outlined text-[16px]">north_east</span>
-        </span>
-      </div>
-
-      <!-- Match -->
-      <div class="flex items-center gap-3">
-        <span class="text-[34px] leading-none font-sans font-normal tracking-[-0.04em] text-text-heading">${m}%</span>
-        <div class="flex items-center gap-[3px]">${segs}</div>
-        <span class="ml-auto text-[13px] font-sans text-text-muted">${lvl.label}</span>
       </div>
 
       <!-- Estado -->
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-sans text-text-body">
-        <span class="inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full ${status.dot}"></span>${status.label}</span>
-        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-label font-semibold ${getInglesColor(t.ingles)}">Inglés ${t.ingles}</span>
+      <div class="flex items-center gap-x-3 text-[13px] font-sans text-text-body">
+        <span class="whitespace-nowrap inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full ${status.dot}"></span>${status.label}</span>
+        <span class="whitespace-nowrap inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-label font-semibold ${getInglesColor(t.ingles)}">Inglés ${t.ingles}</span>
+          <div class="ml-auto -my-1 -mr-1 flex items-center" onclick="event.stopPropagation()">
+            <label class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container-low cursor-pointer" title="Seleccionar para propuesta">
+              <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectTalent('${t.id}', this)" class="w-4 h-4 rounded border-border-strong accent-primary"/>
+            </label>
+            <button onclick="deleteTalentDirectly('${t.id}')" title="Eliminar de Supabase" class="w-7 h-7 rounded-full text-text-muted hover:text-error hover:bg-error-container/40 transition-all flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">delete</span>
+            </button>
+          </div>
       </div>
 
       <!-- Skills -->
@@ -314,15 +304,9 @@ function renderTalentGrid() {
       </div>
 
       <!-- Acciones -->
-      <div class="flex items-center gap-1.5 pt-1">
-        <label class="flex items-center gap-2 cursor-pointer mr-auto" title="Seleccionar para propuesta">
-          <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectTalent('${t.id}', this)" class="w-4 h-4 rounded border-border-strong accent-primary"/>
-        </label>
-        <button onclick="openTalentModal('${t.id}')" class="whitespace-nowrap px-3 py-1.5 rounded-full text-[12px] font-label font-semibold text-text-heading bg-surface-container-low hover:bg-surface-container-high transition-all">Ver ficha</button>
-        <button onclick="addTalentToProposal('${t.id}')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-[12px] font-label font-semibold hover:bg-primary transition-all">+ Propuesta</button>
-        <button onclick="event.stopPropagation(); deleteTalentDirectly('${t.id}')" title="Eliminar de Supabase" class="shrink-0 w-7 h-7 rounded-full text-text-muted hover:text-error hover:bg-error-container/40 transition-all flex items-center justify-center">
-          <span class="material-symbols-outlined text-[18px]">delete</span>
-        </button>
+      <div class="flex items-center gap-2 pt-3 mt-auto border-t border-border-subtle">
+        <button onclick="openTalentModal('${t.id}')" class="flex-1 min-w-0 whitespace-nowrap px-3 py-2 rounded-full text-[12px] font-label font-semibold text-text-heading bg-surface-container-low hover:bg-surface-container-high transition-all">Ver ficha</button>
+        <button onclick="addTalentToProposal('${t.id}')" class="flex-1 min-w-0 whitespace-nowrap px-3 py-2 rounded-full bg-primary-container text-on-primary-container text-[12px] font-label font-semibold hover:bg-primary transition-all">+ Propuesta</button>
       </div>
     </div>`;
   }).join('');
@@ -380,7 +364,6 @@ function openTalentModal(id) {
           <div class="flex items-center gap-2 mt-1">
             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label-sm font-label font-bold ${status.bg} ${status.text}"><span class="w-1.5 h-1.5 rounded-full ${status.dot}"></span>${status.label}</span>
             <span class="inline-flex px-2.5 py-0.5 rounded-full text-label-sm font-label font-bold ${getInglesColor(t.ingles)}">${t.ingles} English</span>
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-label-sm font-label font-bold text-text-body"><span class="material-symbols-outlined text-[12px] text-primary">auto_awesome</span>${t.match}% Match</span>
           </div>
         </div>
       </div>
@@ -1784,7 +1767,6 @@ function renderPropuestas() {
                             <h3 class="text-headline-sm font-sans font-bold text-text-heading">${t.nombre}</h3>
                             <p class="text-body-md font-sans text-text-muted">${t.rol} · ${t.seniority} · ${t.pais} (${t.zona})</p>
                           </div>
-                          <span class="px-2.5 py-1 rounded-full bg-[#D1FAE5] text-[#065F46] text-label-sm font-label font-bold">${t.match || 90}% Match</span>
                         </div>
                       </div>
                     </div>
@@ -1848,14 +1830,14 @@ function renderReportes() {
     'Asignado': VX.talents.filter(t => t.disponibilidad === 'Asignado' && t.activo).length
   };
 
-  const topTalents = [...VX.talents].sort((a, b) => b.match - a.match).slice(0, 5);
+  const topTalents = [...VX.talents].sort((a, b) => (b.experiencia || 0) - (a.experiencia || 0)).slice(0, 5);
 
   const reportEl = document.getElementById('reportsContent');
   if (!reportEl) return;
 
   reportEl.innerHTML = `
     <!-- KPI Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
       <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
         <div class="flex items-center justify-between mb-3">
           <span class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[20px]">group</span></span>
@@ -1879,14 +1861,6 @@ function renderReportes() {
         </div>
         <div class="text-[36px] font-sans font-bold text-status-placed leading-tight">${dispCounts['Asignado']}</div>
         <div class="text-body-md font-sans text-text-muted">Asignados</div>
-      </div>
-      <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
-        <div class="flex items-center justify-between mb-3">
-          <span class="w-10 h-10 rounded-xl bg-[#DBEAFE] flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[20px]">auto_awesome</span></span>
-          <span class="text-label-sm font-label font-bold text-primary">Promedio</span>
-        </div>
-        <div class="text-[36px] font-sans font-bold text-primary leading-tight">${Math.round(VX.talents.reduce((a,b)=>a+b.match,0)/VX.talents.length)}%</div>
-        <div class="text-body-md font-sans text-text-muted">Match Score</div>
       </div>
     </div>
 
@@ -1931,7 +1905,7 @@ function renderReportes() {
         </div>
 
         <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle flex-1">
-          <h3 class="text-headline-sm font-sans font-bold text-text-heading mb-4">Top Perfiles por Match</h3>
+          <h3 class="text-headline-sm font-sans font-bold text-text-heading mb-4">Perfiles con más experiencia</h3>
           <div class="flex flex-col gap-2">
             ${topTalents.map((t, i) => `
               <div onclick="openTalentModal('${t.id}')" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-container-low transition-all cursor-pointer border border-transparent hover:border-primary/20 group">
@@ -1941,7 +1915,7 @@ function renderReportes() {
                   <div class="text-label-md font-label font-bold text-text-heading truncate group-hover:text-primary transition-colors">${t.nombre}</div>
                   <div class="text-body-sm font-sans text-text-muted truncate">${t.rol} · ${t.pais}</div>
                 </div>
-                <span class="text-label-lg font-label font-bold text-primary shrink-0 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">auto_awesome</span>${t.match}%</span>
+                <span class="text-label-lg font-label font-bold text-primary shrink-0 flex items-center gap-1">${t.experiencia || 0} años</span>
               </div>`).join('')}
           </div>
         </div>

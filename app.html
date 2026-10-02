@@ -91,7 +91,6 @@
     .material-symbols-outlined { font-variation-settings: 'wght' 350; }
     .talent-card { transition: transform .2s ease, box-shadow .2s ease; }
     .talent-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -12px rgba(17,17,17,0.18), 0 0 0 1px rgba(17,17,17,0.05); }
-    .match-seg { width: 4px; height: 16px; border-radius: 2px; background: #E4E3DE; }
     @media print {
       header, aside, .no-print, #selectionBanner { display: none !important; }
       .pl-64 { padding-left: 0 !important; }
@@ -364,7 +363,7 @@
           <button onclick="openManualTalentForm()" class="px-4 py-3 rounded-xl bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all flex items-center gap-2 shadow-sm whitespace-nowrap">
             <span class="material-symbols-outlined text-[20px]">person_add</span>+ Cargar Talento
           </button>
-          <div class="grid grid-cols-4 gap-3">
+          <div class="grid grid-cols-3 gap-3">
             <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
               <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Total</span>
               <span class="text-headline-md font-sans font-bold text-text-heading" id="metricTotal">18</span>
@@ -376,10 +375,6 @@
             <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
               <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Asignados</span>
               <span class="text-headline-md font-sans font-bold text-status-placed" id="metricAsig">—</span>
-            </div>
-            <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
-              <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Match</span>
-              <span class="text-headline-md font-sans font-bold text-primary" id="metricMatch">—</span>
             </div>
           </div>
         </div>
