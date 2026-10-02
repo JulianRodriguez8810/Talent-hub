@@ -255,70 +255,72 @@ function renderTalentGrid() {
     const visibleStack = t.stack.slice(0, 3);
     const extraStack = t.stack.length - 3;
 
+    const m = Number(t.match) || 0;
+    const lvl = m >= 80 ? { label: 'Alto', on: 'bg-[#22C55E]', dot: 'bg-[#22C55E]' } : m >= 60 ? { label: 'Medio', on: 'bg-[#F5B400]', dot: 'bg-[#F5B400]' } : { label: 'Bajo', on: 'bg-[#F97316]', dot: 'bg-[#F97316]' };
+    const segs = Array.from({ length: 10 }, (_, i) => `<span class="match-seg ${i < Math.round(m / 10) ? lvl.on : ''}"></span>`).join('');
+
     return `
-    <div class="group bg-surface-card rounded-xl border border-border-subtle hover:border-border-strong hover:shadow-[0_10px_15px_-3px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col overflow-hidden ${isSelected ? 'ring-2 ring-primary border-primary' : ''}">
-      <!-- Selection check -->
-      <div class="px-4 pt-4 flex items-start justify-between gap-2">
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectTalent('${t.id}', this)" class="w-4 h-4 rounded border-border-strong accent-primary"/>
-          <span class="text-label-sm font-label text-text-muted">Añadir a propuesta</span>
-        </label>
-        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label-sm font-label font-bold ${matchColor}">
-          <span class="material-symbols-outlined text-[12px]">auto_awesome</span>
-          ${t.match}%
+    <div class="talent-card group bg-surface-card rounded-[22px] p-4 flex flex-col gap-3 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_0_0_1px_rgba(17,17,17,0.04)] ${isSelected ? 'ring-2 ring-primary-container' : ''}">
+      <!-- Header -->
+      <div onclick="openTalentModal('${t.id}')" class="flex items-start gap-3 cursor-pointer" title="Ver ficha completa">
+        <div class="relative shrink-0">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-semibold text-[15px]">
+            ${getInitials(t.nombre)}
+          </div>
+          <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full ${status.dot} ring-2 ring-surface-card"></span>
+        </div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-[15px] leading-5 font-sans font-semibold text-text-heading truncate group-hover:text-primary transition-colors">${t.nombre}</h3>
+          <p class="text-[13px] leading-5 font-sans text-text-muted truncate">${t.rol} · ${t.seniority}</p>
+        </div>
+        <span class="shrink-0 w-8 h-8 rounded-full bg-surface-container-low group-hover:bg-primary-container group-hover:text-on-primary-container text-text-muted flex items-center justify-center transition-colors">
+          <span class="material-symbols-outlined text-[16px]">north_east</span>
         </span>
       </div>
 
-      <!-- Avatar + info -->
-      <div onclick="openTalentModal('${t.id}')" class="px-4 pt-3 pb-2 flex items-start gap-3 cursor-pointer group-hover:bg-surface-canvas/50 transition-colors" title="Ver ficha completa">
-        <div class="relative shrink-0">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[18px]">
-            ${getInitials(t.nombre)}
-          </div>
-          <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ${status.dot} ring-2 ring-surface-card"></span>
+      <!-- Match -->
+      <div class="flex items-center gap-3">
+        <span class="text-[34px] leading-none font-sans font-normal tracking-[-0.04em] text-text-heading">${m}%</span>
+        <div class="flex items-center gap-[3px]">${segs}</div>
+        <span class="ml-auto text-[13px] font-sans text-text-muted">${lvl.label}</span>
+      </div>
+
+      <!-- Estado -->
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-sans text-text-body">
+        <span class="inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full ${status.dot}"></span>${status.label}</span>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-label font-semibold ${getInglesColor(t.ingles)}">Inglés ${t.ingles}</span>
+      </div>
+
+      <!-- Skills -->
+      <div class="flex flex-wrap gap-1.5">
+        ${visibleStack.map(s => `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-low text-text-body text-[11px] font-label font-medium"><span class="material-symbols-outlined text-[12px] text-primary">${stackIcon(s)}</span>${s}</span>`).join('')}
+        ${extraStack > 0 ? `<span class="px-2.5 py-1 rounded-full bg-surface-container-low text-text-muted text-[11px] font-label font-medium">+${extraStack}</span>` : ''}
+      </div>
+
+      <!-- Datos -->
+      <div class="grid grid-cols-3 rounded-2xl border border-border-subtle divide-x divide-border-subtle">
+        <div class="px-3 py-2 flex flex-col min-w-0 whitespace-nowrap">
+          <span class="text-[11px] font-label text-text-muted">Tarifa/h</span>
+          <span class="text-[14px] font-sans font-medium text-text-heading">$${t.tarifa}</span>
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-headline-sm font-sans font-bold text-text-heading truncate group-hover:text-primary transition-colors">${t.nombre}</h3>
-          <p class="text-body-sm font-sans text-text-muted truncate">${t.rol} · ${t.seniority}</p>
-          <div class="flex items-center gap-2 mt-1">
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label font-bold uppercase tracking-wider ${status.bg} ${status.text}">
-              <span class="w-1.5 h-1.5 rounded-full ${status.dot}"></span>
-              ${status.label}
-            </span>
-            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-label font-bold ${getInglesColor(t.ingles)}">${t.ingles}</span>
-          </div>
+        <div class="px-3 py-2 flex flex-col min-w-0 whitespace-nowrap">
+          <span class="text-[11px] font-label text-text-muted">Exp.</span>
+          <span class="text-[14px] font-sans font-medium text-text-heading">${t.experiencia}a</span>
+        </div>
+        <div class="px-3 py-2 flex flex-col min-w-0">
+          <span class="text-[11px] font-label text-text-muted">${t.pais.slice(0, 3).toUpperCase()}</span>
+          <span class="text-[14px] font-sans font-medium text-text-heading truncate">${t.zona}</span>
         </div>
       </div>
 
-      <!-- Skills row -->
-      <div class="px-4 py-2 flex flex-wrap gap-1.5">
-        ${visibleStack.map(s => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-text-body text-[11px] font-label font-semibold"><span class="material-symbols-outlined text-[12px] text-primary">${stackIcon(s)}</span>${s}</span>`).join('')}
-        ${extraStack > 0 ? `<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-text-muted text-[11px] font-label font-semibold">+${extraStack}</span>` : ''}
-      </div>
-
-      <!-- Metrics row -->
-      <div class="px-4 py-2 grid grid-cols-3 gap-2 border-t border-border-subtle">
-        <div class="flex flex-col items-center">
-          <span class="text-label-lg font-label font-bold text-text-heading">$${t.tarifa}</span>
-          <span class="text-[10px] font-label text-text-muted">por hora</span>
-        </div>
-        <div class="flex flex-col items-center border-x border-border-subtle">
-          <span class="text-label-lg font-label font-bold text-text-heading">${t.experiencia}a</span>
-          <span class="text-[10px] font-label text-text-muted">experiencia</span>
-        </div>
-        <div class="flex flex-col items-center">
-          <span class="text-label-lg font-label font-bold text-text-heading">${t.zona}</span>
-          <span class="text-[10px] font-label text-text-muted">${t.pais.slice(0, 3).toUpperCase()}</span>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="px-4 py-3 flex items-center justify-between gap-2 bg-surface-canvas">
-        <button onclick="openTalentModal('${t.id}')" class="flex-1 text-label-md font-label font-bold text-primary hover:text-primary/80 text-center py-1.5 rounded-lg hover:bg-surface-container-low transition-all">Ver Ficha</button>
-        <div class="w-px h-5 bg-border-subtle"></div>
-        <button onclick="addTalentToProposal('${t.id}')" class="flex-1 text-center py-1.5 px-3 rounded-lg bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all">+ Propuesta</button>
-        <div class="w-px h-5 bg-border-subtle"></div>
-        <button onclick="event.stopPropagation(); deleteTalentDirectly('${t.id}')" title="Eliminar de Supabase" class="p-1.5 rounded-lg text-text-muted hover:text-error hover:bg-error-container/20 transition-all flex items-center justify-center">
+      <!-- Acciones -->
+      <div class="flex items-center gap-1.5 pt-1">
+        <label class="flex items-center gap-2 cursor-pointer mr-auto" title="Seleccionar para propuesta">
+          <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectTalent('${t.id}', this)" class="w-4 h-4 rounded border-border-strong accent-primary"/>
+        </label>
+        <button onclick="openTalentModal('${t.id}')" class="whitespace-nowrap px-3 py-1.5 rounded-full text-[12px] font-label font-semibold text-text-heading bg-surface-container-low hover:bg-surface-container-high transition-all">Ver ficha</button>
+        <button onclick="addTalentToProposal('${t.id}')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-[12px] font-label font-semibold hover:bg-primary transition-all">+ Propuesta</button>
+        <button onclick="event.stopPropagation(); deleteTalentDirectly('${t.id}')" title="Eliminar de Supabase" class="shrink-0 w-7 h-7 rounded-full text-text-muted hover:text-error hover:bg-error-container/40 transition-all flex items-center justify-center">
           <span class="material-symbols-outlined text-[18px]">delete</span>
         </button>
       </div>

@@ -7,7 +7,7 @@
   <meta name="description" content="Plataforma interna de gestión de talento IT — Virtual Xpert. Directorio de perfiles, matchmaking, clientes y propuestas."/>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Inter:wght@400;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script id="tailwind-config">
     tailwind.config = {
@@ -15,35 +15,35 @@
       theme: {
         extend: {
           colors: {
-            "background": "#f8f9ff", "on-secondary-container": "#5c647a", "tertiary": "#006779",
-            "border-subtle": "#E2E8F0", "primary-container": "#0078d4", "surface": "#f8f9ff",
-            "on-secondary": "#ffffff", "secondary-fixed-dim": "#bec6e0", "surface-container-low": "#eff4ff",
-            "surface-container-lowest": "#ffffff", "surface-variant": "#d3e4fe", "surface-bright": "#f8f9ff",
+            "background": "#ECEBE7", "on-secondary-container": "#5c647a", "tertiary": "#006779",
+            "border-subtle": "#E7E5E0", "primary-container": "#0078d4", "surface": "#ECEBE7",
+            "on-secondary": "#ffffff", "secondary-fixed-dim": "#bec6e0", "surface-container-low": "#F5F4F1",
+            "surface-container-lowest": "#FFFFFF", "surface-variant": "#E6E5E0", "surface-bright": "#F7F6F3",
             "on-tertiary": "#ffffff", "surface-card": "#FFFFFF", "on-primary-fixed": "#001c39",
-            "tertiary-fixed": "#acedff", "surface-container-high": "#dce9ff", "tertiary-fixed-dim": "#4cd7f6",
-            "on-primary-container": "#ffffff", "text-muted": "#64748B", "primary-fixed-dim": "#a3c9ff",
+            "tertiary-fixed": "#acedff", "surface-container-high": "#E6E5E0", "tertiary-fixed-dim": "#4cd7f6",
+            "on-primary-container": "#ffffff", "text-muted": "#8C8B85", "primary-fixed-dim": "#a3c9ff",
             "tertiary-container": "#008298", "primary-fixed": "#d3e3ff", "on-primary": "#ffffff",
-            "inverse-primary": "#a3c9ff", "surface-container-highest": "#d3e4fe", "secondary": "#565e74",
+            "inverse-primary": "#a3c9ff", "surface-container-highest": "#DEDDD7", "secondary": "#565e74",
             "error-container": "#ffdad6", "inverse-surface": "#213145", "error": "#ba1a1a",
             "on-secondary-fixed": "#131b2e", "on-secondary-fixed-variant": "#3f465c",
             "secondary-container": "#dae2fd", "on-primary-fixed-variant": "#004883",
             "on-tertiary-fixed": "#001f26", "on-tertiary-fixed-variant": "#004e5c",
-            "on-surface": "#0b1c30", "outline": "#717783", "surface-tint": "#0060ab",
-            "secondary-fixed": "#dae2fd", "legacy-brand-navy": "#1C3F60", "border-strong": "#CBD5E1",
+            "on-surface": "#111111", "outline": "#8C8B85", "surface-tint": "#0060ab",
+            "secondary-fixed": "#dae2fd", "legacy-brand-navy": "#1C3F60", "border-strong": "#D4D2CB",
             "status-available": "#10B981", "on-error-container": "#93000a", "on-error": "#ffffff",
-            "status-placed": "#6366F1", "on-tertiary-container": "#ffffff", "surface-canvas": "#F8FAFC",
-            "surface-dim": "#cbdbf5", "inverse-on-surface": "#eaf1ff", "primary": "#005faa",
-            "status-interviewing": "#F59E0B", "on-surface-variant": "#404752", "text-heading": "#0F172A",
-            "text-body": "#334155", "on-background": "#0b1c30", "surface-container": "#e5eeff",
+            "status-placed": "#6366F1", "on-tertiary-container": "#ffffff", "surface-canvas": "#ECEBE7",
+            "surface-dim": "#D9D8D2", "inverse-on-surface": "#eaf1ff", "primary": "#005faa",
+            "status-interviewing": "#F59E0B", "on-surface-variant": "#55554F", "text-heading": "#111111",
+            "text-body": "#3B3B37", "on-background": "#111111", "surface-container": "#F0EFEB",
             "legacy-brand-mint": "#53D398"
           },
-          borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+          borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.875rem", "2xl": "1.25rem", "full": "9999px" },
           spacing: {
             "space-lg": "1.5rem", "space-sm": "0.5rem", "space-md": "1rem",
             "gutter-mobile": "0.75rem", "gutter": "1.5rem", "space-xs": "0.25rem",
             "margin-mobile": "1rem", "margin": "2rem", "space-xl": "2.5rem"
           },
-          fontFamily: { "sans": ["Plus Jakarta Sans", "sans-serif"], "label": ["Inter", "sans-serif"] },
+          fontFamily: { "sans": ["Geist", "Inter", "sans-serif"], "label": ["Geist", "Inter", "sans-serif"] },
           fontSize: {
             "headline-sm": ["16px", { lineHeight: "24px", letterSpacing: "-0.005em", fontWeight: "600" }],
             "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
@@ -70,7 +70,28 @@
     .card-hover { transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
     .card-hover:hover { transform: translateY(-1px); }
     #dropZone { transition: all 0.2s ease; }
-    #dropZone.drag-over { border-color: #0078d4; background: #eff4ff; }
+    #dropZone.drag-over { border-color: #111111; background: #F5F4F1; }
+    /* Estética moderna clara: fondo semi gris, tarjetas blancas bien separadas, bordes suaves */
+    body { letter-spacing: -0.006em; }
+    body > header { background: rgba(236,235,231,0.85) !important; box-shadow: none !important; border-bottom-color: transparent !important; }
+    body > aside { background: transparent !important; box-shadow: none !important; border-right-color: transparent !important; }
+    body > aside nav { background: #FFFFFF; border-radius: 1.5rem; padding: 0.375rem; box-shadow: 0 1px 2px rgba(17,17,17,0.04); }
+    .nav-item { border-radius: 9999px !important; }
+    body > header div:has(> input#globalSearch) { background: #FFFFFF !important; border-radius: 9999px !important; }
+    body > header button.rounded-xl { border-radius: 9999px; }
+    button.bg-primary-container, a.bg-primary-container { border-radius: 9999px !important; box-shadow: none !important; }
+    .filter-chip.rounded-full { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    #sidebarFiltersSection { background: #FFFFFF; border-radius: 1.5rem; padding: 1rem; border-top: 0 !important; box-shadow: 0 1px 2px rgba(17,17,17,0.04); }
+    main .bg-surface-card.rounded-xl, main .bg-surface-card.rounded-2xl, .section-content .bg-surface-card.rounded-xl {
+      border-radius: 1.25rem; border-color: transparent; box-shadow: 0 1px 2px rgba(17,17,17,0.04), 0 0 0 1px rgba(17,17,17,0.03);
+    }
+    h1, h2 { letter-spacing: -0.025em; }
+    .text-headline-xl { font-size: 36px; line-height: 42px; font-weight: 600; letter-spacing: -0.035em; }
+    .text-headline-lg { font-weight: 600; letter-spacing: -0.03em; }
+    .material-symbols-outlined { font-variation-settings: 'wght' 350; }
+    .talent-card { transition: transform .2s ease, box-shadow .2s ease; }
+    .talent-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -12px rgba(17,17,17,0.18), 0 0 0 1px rgba(17,17,17,0.05); }
+    .match-seg { width: 4px; height: 16px; border-radius: 2px; background: #E4E3DE; }
     @media print {
       header, aside, .no-print, #selectionBanner { display: none !important; }
       .pl-64 { padding-left: 0 !important; }
@@ -91,8 +112,8 @@
   <div class="h-16 w-full px-gutter flex items-center justify-between gap-4">
     <!-- Logo + brand -->
     <div class="flex items-center gap-3 min-w-[248px]">
-      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-legacy-brand-navy to-primary flex items-center justify-center shrink-0">
-        <span class="material-symbols-outlined text-tertiary-fixed text-[18px]">hub</span>
+      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-legacy-brand-navy to-primary flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-tertiary-fixed text-[20px]">hub</span>
       </div>
       <div class="flex flex-col">
         <span class="text-headline-sm font-sans font-bold text-text-heading leading-tight">Virtual Xpert</span>
@@ -383,7 +404,7 @@
 
       <!-- Main grid: full-screen talent grid -->
       <div class="w-full">
-        <div id="talentGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+        <div id="talentGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
           <!-- Rendered by JS -->
         </div>
       </div>
