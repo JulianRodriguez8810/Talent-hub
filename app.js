@@ -31,7 +31,7 @@ const VX = {
     seniority: [],
     pais: [],
     tarifaMin: 0,
-    tarifaMax: 300
+    tarifaMax: 150
   }
 };
 
@@ -200,12 +200,12 @@ function toggleFilter(type, value, el) {
 }
 
 function resetFilters() {
-  VX.filters = { stack: [], ingles: [], disponibilidad: [], seniority: [], pais: [], tarifaMin: 0, tarifaMax: 300 };
+  VX.filters = { stack: [], ingles: [], disponibilidad: [], seniority: [], pais: [], tarifaMin: 0, tarifaMax: 150 };
   VX.searchQuery = '';
   const searchEl = document.getElementById('semanticSearch');
   if (searchEl) searchEl.value = '';
   const tarifaLabel = document.getElementById('tarifaLabel');
-  if (tarifaLabel) tarifaLabel.textContent = '$0 – $300';
+  if (tarifaLabel) tarifaLabel.textContent = '$0 – $150';
   document.querySelectorAll('.filter-chip').forEach(el => {
     el.classList.remove('bg-[#E0F2FE]', 'border-[#0284C7]', 'text-[#0369A1]');
     el.classList.add('bg-surface-container', 'border-transparent', 'text-text-body');
