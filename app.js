@@ -18,11 +18,22 @@ async function api(method, url, body, raw) {
       body: raw ? body : body === undefined ? undefined : JSON.stringify(body)
     });
     if (r.status === 401) { sessionStorage.removeItem('vx_user'); window.location.href = 'index.html'; }
+    setSyncStatus(r.status < 500);
     const data = await r.json().catch(() => null);
     return r.ok ? { data, error: null } : { data: null, error: { message: data?.error || `HTTP ${r.status}` } };
   } catch (e) {
+    setSyncStatus(false);
     return { data: null, error: { message: e.message } };
   }
+}
+
+// Indicador del menú lateral: refleja si la última llamada al servidor respondió.
+function setSyncStatus(ok) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  el.textContent = ok ? 'Sincronizado' : 'Sin conexión';
+  el.classList.toggle('text-status-available', ok);
+  el.classList.toggle('text-error', !ok);
 }
 
 // Misma forma de uso que el cliente de Supabase que había antes: from(tabla).select/insert/update/delete y storage.

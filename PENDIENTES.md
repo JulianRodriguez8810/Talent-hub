@@ -14,5 +14,5 @@
 2. **OneDrive en la notebook**: no está corriendo, así que la copia diaria queda solo en el disco local. Abrirlo, iniciar sesión (`jrodriguez.andres88@outlook.com`) y dejarlo arrancando con Windows; verificar que la carpeta `Backups\Talent Hub` sube a la nube.
 3. **Cloudflare Access** (Zero Trust, gratis hasta 50 usuarios): poner una puerta antes del sitio para que solo los 3 emails entren con un código de un solo uso por correo. Es la mejora de seguridad más grande.
 4. **Disco de la notebook sin cifrar** (Windows 11 Home, sin BitLocker, con inicio de sesión automático): si la roban, se leen los datos. Ver si admite "Cifrado de dispositivo" o pasar a Windows Pro.
-5. Probar en el navegador la carga de un CV en PDF (el lector de PDF corre en un *worker* de cdnjs; la política de seguridad nueva lo permite, pero no se probó en la app real).
-6. Quitar el recuadro decorativo "Azure AD · Sincronizado" del menú lateral (no es real).
+5. ✅ (14/10) Carga de CV en PDF probada con la política de seguridad nueva: funciona.
+6. ✅ (14/10) El recuadro del menú lateral ahora dice "Servidor notebook" y muestra "Sincronizado" o "Sin conexión" según responda el servidor.
