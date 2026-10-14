@@ -34,6 +34,7 @@ function setSyncStatus(ok) {
   el.textContent = ok ? 'Sincronizado' : 'Sin conexión';
   el.classList.toggle('text-status-available', ok);
   el.classList.toggle('text-error', !ok);
+  document.getElementById('serverNotebook')?.classList.toggle('offline', !ok);
 }
 
 // Misma forma de uso que el cliente de Supabase que había antes: from(tabla).select/insert/update/delete y storage.

@@ -78,8 +78,11 @@ backup();
 setInterval(backup, 864e5);
 
 // ---- HTTP ----
-const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.html': 'app.html', '/app.js': 'app.js' };
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.pdf': 'application/pdf', '.doc': 'application/msword', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
+const STATIC = {
+  '/': 'index.html', '/index.html': 'index.html', '/app.html': 'app.html', '/app.js': 'app.js',
+  '/notebook-abierta.png': 'notebook-abierta.png', '/notebook-cerrada.png': 'notebook-cerrada.png',
+};
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.pdf': 'application/pdf', '.doc': 'application/msword', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
 const MAX_BODY = 30 * 1024 * 1024;
 
 const send = (res, code, body, headers = {}) => {
