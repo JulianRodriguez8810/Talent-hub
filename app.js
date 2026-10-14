@@ -2362,8 +2362,57 @@ async function saveClient(e) {
 }
 
 
+// Cartel de confirmación con el estilo de la app (reemplaza al confirm() del navegador).
+function confirmDialog({ title, message, confirmText = 'Confirmar', icon = 'help', danger = false }) {
+  return new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'fixed inset-0 z-[200] flex items-center justify-center p-4';
+    wrap.innerHTML = `
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" data-action="cancel"></div>
+      <div class="relative w-full max-w-sm bg-surface-card rounded-2xl shadow-2xl p-6 border border-border-subtle">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-[22px] ${danger ? 'bg-error-container text-error' : 'bg-primary-container/30 text-primary'}">${icon}</span>
+          <div class="min-w-0">
+            <h3 class="text-headline-sm font-sans font-bold text-text-heading" data-el="title"></h3>
+            <p class="text-body-md font-sans text-text-muted mt-1 whitespace-pre-line" data-el="message"></p>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button type="button" data-action="cancel" class="px-4 py-2.5 rounded-xl border border-border-strong text-text-heading text-label-md font-label font-bold hover:bg-surface-container-low">Cancelar</button>
+          <button type="button" data-action="ok" class="px-5 py-2.5 rounded-xl text-label-md font-label font-bold transition-all ${danger ? 'bg-error text-on-error hover:opacity-90' : 'bg-primary-container text-on-primary-container hover:bg-primary'}"></button>
+        </div>
+      </div>`;
+    wrap.querySelector('[data-el="title"]').textContent = title;
+    wrap.querySelector('[data-el="message"]').textContent = message;
+    wrap.querySelector('[data-action="ok"]').textContent = confirmText;
+
+    const close = (result) => {
+      document.removeEventListener('keydown', onKey);
+      wrap.remove();
+      resolve(result);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') close(false);
+      if (e.key === 'Enter') { e.preventDefault(); close(true); }
+    };
+    wrap.addEventListener('click', (e) => {
+      const action = e.target.closest('[data-action]')?.dataset.action;
+      if (action) close(action === 'ok');
+    });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(wrap);
+    wrap.querySelector('[data-action="ok"]').focus();
+  });
+}
+
 async function deleteTalentDirectly(id) {
-  if (!confirm('¿Seguro que querés eliminar este talento?')) return;
+  const nombre = VX.talents.find(t => String(t.id) === String(id))?.nombre || 'este talento';
+  const ok = await confirmDialog({
+    title: 'Eliminar talento',
+    message: `Se va a eliminar a ${nombre} junto con su CV. Esta acción no se puede deshacer.`,
+    confirmText: 'Eliminar', icon: 'person_remove', danger: true
+  });
+  if (!ok) return;
   
   const talent = VX.talents.find(t => String(t.id) === String(id));
   if (talent && talent.cv_url && db) {
@@ -2392,7 +2441,13 @@ async function deleteTalentDirectly(id) {
 }
 
 async function deleteClientDirectly(id) {
-  if (!confirm('¿Seguro que querés eliminar este cliente? Se borrarán sus propuestas vinculadas.')) return;
+  const nombre = VX.clients.find(c => String(c.id) === String(id))?.nombre || 'este cliente';
+  const ok = await confirmDialog({
+    title: 'Eliminar cliente',
+    message: `Se va a eliminar ${nombre} junto con sus propuestas vinculadas. Esta acción no se puede deshacer.`,
+    confirmText: 'Eliminar', icon: 'domain_disabled', danger: true
+  });
+  if (!ok) return;
 
   if (db) {
     const { error } = await db.from('clients').delete().eq('id', id);
@@ -2558,10 +2613,18 @@ async function unmarkClientCompleted(clientId) {
   const c = VX.clients.find(x => String(x.id) === String(clientId));
   if (!c) return;
 
-  const ok1 = confirm(`¿Querés quitar el estado COMPLETED de "${c.nombre}"?\n\nEsto es una acción poco común. Asegurate de que realmente necesitás revertir el estado.`);
+  const ok1 = await confirmDialog({
+    title: 'Quitar estado COMPLETED',
+    message: `¿Querés quitar el estado COMPLETED de "${c.nombre}"?\n\nEsto es una acción poco común. Asegurate de que realmente necesitás revertir el estado.`,
+    confirmText: 'Continuar', icon: 'undo'
+  });
   if (!ok1) return;
 
-  const ok2 = confirm(`Segunda confirmación: ¿Seguro que querés revertir "${c.nombre}" a estado Activo?`);
+  const ok2 = await confirmDialog({
+    title: 'Segunda confirmación',
+    message: `¿Seguro que querés revertir "${c.nombre}" a estado Activo?`,
+    confirmText: 'Revertir a Activo', icon: 'warning', danger: true
+  });
   if (!ok2) return;
 
   c.estado = 'Activo';
