@@ -104,8 +104,11 @@
     .server-notebook { position: relative; width: 40px; height: 30px; flex-shrink: 0; }
     .server-notebook img { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: multiply; }
     .server-notebook .nb-cerrada { animation: nb-toggle 4s ease-in-out infinite; }
+    /* La abierta hace lo inverso (medio ciclo corrida), así nunca se ve detrás de la cerrada */
+    .server-notebook .nb-abierta { animation: nb-toggle 4s ease-in-out -2s infinite; }
     .server-notebook.offline { filter: grayscale(1); opacity: .5; }
     .server-notebook.offline .nb-cerrada { animation: none; opacity: 1; }
+    .server-notebook.offline .nb-abierta { animation: none; opacity: 0; }
     @keyframes nb-toggle { 0%, 40% { opacity: 0; } 50%, 90% { opacity: 1; } 100% { opacity: 0; } }
   </style>
 </head>
