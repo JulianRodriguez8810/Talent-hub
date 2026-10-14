@@ -95,23 +95,70 @@ const readBody = (req) => new Promise((ok, fail) => {
 });
 const safeName = (n) => /^[\w.-]+$/.test(n) && !n.startsWith('.') ? n : null;
 
+// ---- Límite de intentos de login: 5 fallidos en 15 min (por IP o por email) bloquean 15 min ----
+const MAX_FAILS = 5;
+const FAIL_WINDOW = 15 * 60e3;
+const fails = new Map();
+// Por el túnel todo llega desde localhost: la IP real la manda Cloudflare.
+const viaTunnel = (req) => !!req.headers['cf-connecting-ip'];
+const clientIp = (req) => req.headers['cf-connecting-ip'] || req.socket.remoteAddress;
+const isBlocked = (keys) => keys.some((k) => { const f = fails.get(k); return f && Date.now() - f.first < FAIL_WINDOW && f.n >= MAX_FAILS; });
+function addFail(keys) {
+  for (const k of keys) {
+    const f = fails.get(k);
+    fails.set(k, f && Date.now() - f.first < FAIL_WINDOW ? { ...f, n: f.n + 1 } : { n: 1, first: Date.now() });
+  }
+}
+setInterval(() => { for (const [k, f] of fails) if (Date.now() - f.first >= FAIL_WINDOW) fails.delete(k); }, FAIL_WINDOW);
+
+// ---- Cabeceras de seguridad en todas las respuestas ----
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com",
+    "worker-src 'self' blob: https://cdnjs.cloudflare.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https:",
+    "connect-src 'self' https://cdnjs.cloudflare.com",
+    "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'",
+  ].join('; '),
+  'Strict-Transport-Security': 'max-age=31536000',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'same-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  // Que los buscadores no la indexen: es de uso interno.
+  'X-Robots-Tag': 'noindex, nofollow',
+};
+
 async function handle(req, res) {
+  for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
   const url = new URL(req.url, 'http://x');
   const p = decodeURIComponent(url.pathname);
+
+  if (req.method === 'GET' && p === '/robots.txt') return send(res, 200, 'User-agent: *\nDisallow: /\n');
 
   if (req.method === 'GET' && STATIC[p]) {
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(STATIC[p])], 'Cache-Control': 'no-cache' });
     return fs.createReadStream(path.join(ROOT, STATIC[p])).pipe(res);
   }
-  // Para el panel del servidor: sin datos personales.
-  if (req.method === 'GET' && p === '/salud') {
+  // Para el panel del servidor (solo desde la notebook, no por el túnel): sin datos personales.
+  if (req.method === 'GET' && p === '/salud' && !viaTunnel(req)) {
     const n = (t) => db.prepare(`SELECT COUNT(*) AS n FROM ${t}`).get().n;
     return send(res, 200, { ok: true, talentos: n('talents'), clientes: n('clients'), archivos: fs.readdirSync(CVS).length, ultimaCopia: lastBackup });
   }
   if (req.method === 'POST' && p === '/api/login') {
     const { email = '', password = '' } = JSON.parse((await readBody(req)).toString() || '{}');
+    const keys = [`ip:${clientIp(req)}`, `email:${String(email).trim().toLowerCase()}`];
+    if (isBlocked(keys)) return send(res, 429, { error: 'Demasiados intentos. Probá de nuevo en 15 minutos.' });
     const user = getUser(email);
-    if (!checkPassword(user, password)) return send(res, 401, { error: 'Credenciales inválidas' });
+    if (!checkPassword(user, password)) {
+      addFail(keys);
+      console.log(`${new Date().toISOString()} login fallido: ${String(email).slice(0, 80)} desde ${clientIp(req)}`);
+      return send(res, 401, { error: 'Credenciales inválidas' });
+    }
+    keys.forEach((k) => fails.delete(k));
     return send(res, 200, { email: user.email, nombre: user.nombre }, { 'Set-Cookie': makeCookie(user, isHttps(req)) });
   }
   if (req.method === 'POST' && p === '/api/logout') return send(res, 200, { ok: true }, { 'Set-Cookie': 'th_sesion=; Path=/; Max-Age=0' });

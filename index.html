@@ -235,7 +235,12 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
-      }).then(r => r.ok ? r.json() : null).catch(() => null).then(user => {
+      }).then(r => {
+        errorMsg.querySelector('span:last-child').textContent = r.status === 429
+          ? 'Demasiados intentos. Probá de nuevo en 15 minutos.'
+          : 'Credenciales incorrectas. Intentá de nuevo.';
+        return r.ok ? r.json() : null;
+      }).catch(() => null).then(user => {
         if (user) {
           // Store session
           sessionStorage.setItem('vx_user', JSON.stringify({
