@@ -1,15 +1,10 @@
 {
   "version": 2,
-  "rewrites": [
+  "redirects": [
     {
       "source": "/(.*)",
-      "destination": "/$1"
-    }
-  ],
-  "crons": [
-    {
-      "path": "/api/keepalive",
-      "schedule": "0 12 * * *"
+      "destination": "https://talent.virtual-xpert.net/$1",
+      "permanent": false
     }
   ]
 }

@@ -9,10 +9,38 @@
   }
 })();
 
-// ---- SUPABASE CLIENT ----
-const SUPABASE_URL = 'https://nbyvtpiiyconbjqduyms.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ieXZ0cGlpeWNvbmJqcWR1eW1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1ODgxMDcsImV4cCI6MjEwNTE2NDEwN30.kS13oCNaxqHBjbVDUMFvceohQEE8Mqym0wpUjj8l6TQ';
-const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+// ---- BASE DE DATOS (servidor propio, ver server.mjs) ----
+async function api(method, url, body, raw) {
+  try {
+    const r = await fetch(url, {
+      method,
+      headers: raw ? {} : { 'Content-Type': 'application/json' },
+      body: raw ? body : body === undefined ? undefined : JSON.stringify(body)
+    });
+    if (r.status === 401) { sessionStorage.removeItem('vx_user'); window.location.href = 'index.html'; }
+    const data = await r.json().catch(() => null);
+    return r.ok ? { data, error: null } : { data: null, error: { message: data?.error || `HTTP ${r.status}` } };
+  } catch (e) {
+    return { data: null, error: { message: e.message } };
+  }
+}
+
+// Misma forma de uso que el cliente de Supabase que había antes: from(tabla).select/insert/update/delete y storage.
+const db = {
+  from: (t) => ({
+    select: () => ({ order: (_, o) => api('GET', `/api/${t}?order=${o?.ascending === false ? 'desc' : 'asc'}`) }),
+    insert: (rows) => ({ select: () => api('POST', `/api/${t}`, rows) }),
+    update: (obj) => ({ eq: (_, id) => api('PATCH', `/api/${t}/${id}`, obj) }),
+    delete: () => ({ eq: (_, id) => api('DELETE', `/api/${t}/${id}`) })
+  }),
+  storage: {
+    from: () => ({
+      upload: (name, file) => api('PUT', `/api/cvs/${encodeURIComponent(name)}`, file, true),
+      remove: (names) => Promise.all(names.map(n => api('DELETE', `/api/cvs/${encodeURIComponent(n)}`))),
+      getPublicUrl: (name) => ({ data: { publicUrl: `/cvs/${name}` } })
+    })
+  }
+};
 
 // ---- GLOBAL STATE ----
 const VX = {
@@ -275,7 +303,7 @@ function renderTalentGrid() {
             <label class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container-low cursor-pointer" title="Seleccionar para propuesta">
               <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectTalent('${t.id}', this)" class="w-4 h-4 rounded border-border-strong accent-primary"/>
             </label>
-            <button onclick="deleteTalentDirectly('${t.id}')" title="Eliminar de Supabase" class="w-7 h-7 rounded-full text-text-muted hover:text-error hover:bg-error-container/40 transition-all flex items-center justify-center">
+            <button onclick="deleteTalentDirectly('${t.id}')" title="Eliminar" class="w-7 h-7 rounded-full text-text-muted hover:text-error hover:bg-error-container/40 transition-all flex items-center justify-center">
               <span class="material-symbols-outlined text-[18px]">delete</span>
             </button>
           </div>
@@ -458,7 +486,7 @@ function openTalentModal(id) {
     ${t.cv_url ? `
     <div class="mb-5">
       <a href="${t.cv_url}" target="_blank" class="flex items-center gap-2 p-3 rounded-xl bg-surface-container-low border border-primary/20 text-primary hover:underline font-label font-bold text-label-md">
-        <span class="material-symbols-outlined text-[20px]">description</span>Ver Documento CV Adjunto en Supabase
+        <span class="material-symbols-outlined text-[20px]">description</span>Ver Documento CV Adjunto
       </a>
     </div>` : ''}
 
@@ -586,15 +614,15 @@ async function saveTalentEdit(id) {
   const btn = document.getElementById('saveTalentEditBtn');
   if (btn) btn.disabled = true;
 
-  if (supabaseClient) {
-    let { error } = await supabaseClient.from('talents').update(changes).eq('id', t.id);
+  if (db) {
+    let { error } = await db.from('talents').update(changes).eq('id', t.id);
     if (error) {
       // Igual que en el alta: reintentar con stack serializado para columnas de texto
-      ({ error } = await supabaseClient.from('talents').update({ ...changes, stack: JSON.stringify(stack) }).eq('id', t.id));
+      ({ error } = await db.from('talents').update({ ...changes, stack: JSON.stringify(stack) }).eq('id', t.id));
     }
     if (error) {
       console.error('Error actualizando talento:', error);
-      showToast(`Error Supabase: ${error.message}`, 'error');
+      showToast(`Error al guardar: ${error.message}`, 'error');
       if (btn) btn.disabled = false;
       return;
     }
@@ -603,7 +631,7 @@ async function saveTalentEdit(id) {
   Object.assign(t, changes);
   applyFilters();
   openTalentModal(t.id);
-  showToast('Ficha actualizada en Supabase ✓', 'success');
+  showToast('Ficha actualizada ✓', 'success');
 }
 
 function closeTalentModal() {
@@ -624,7 +652,7 @@ function renderClientes() {
   }
 }
 
-// Ordena por último uso (columna ultimo_uso en Supabase), si no hay usa la fecha de alta
+// Ordena por último uso (campo ultimo_uso), si no hay usa la fecha de alta
 function sortClientsByLastUse() {
   const ts = c => new Date(c.ultimo_uso || c.created_at || 0).getTime();
   VX.clients.sort((a, b) => ts(b) - ts(a));
@@ -634,8 +662,8 @@ function markClientUsed(id) {
   const c = VX.clients.find(x => String(x.id) === String(id));
   if (!c) return;
   c.ultimo_uso = new Date().toISOString();
-  if (supabaseClient) {
-    supabaseClient.from('clients').update({ ultimo_uso: c.ultimo_uso }).eq('id', c.id)
+  if (db) {
+    db.from('clients').update({ ultimo_uso: c.ultimo_uso }).eq('id', c.id)
       .then(({ error }) => { if (error) console.warn('No se pudo guardar ultimo_uso:', error.message); });
   }
 }
@@ -1092,10 +1120,10 @@ async function assignTalent(clientId, talentId) {
     t.asignacion = { cliente: c.nombre, horas: 40 };
     t.disponibilidad = 'Asignado';
 
-    await updateClientInSupabase(c.id, { talentoAsignado: c.talentoAsignado });
-    if (supabaseClient && t.id) {
+    await updateClientInDb(c.id, { talentoAsignado: c.talentoAsignado });
+    if (db && t.id) {
       const dbTid = isNaN(Number(t.id)) ? t.id : Number(t.id);
-      await supabaseClient.from('talents').update({
+      await db.from('talents').update({
         disponibilidad: 'Asignado',
         asignacion: JSON.stringify(t.asignacion)
       }).eq('id', dbTid);
@@ -1120,10 +1148,10 @@ async function unassignTalent(clientId, talentId) {
   t.asignacion = null;
   t.disponibilidad = 'Inmediata';
 
-  await updateClientInSupabase(c.id, { talentoAsignado: c.talentoAsignado });
-  if (supabaseClient && t.id) {
+  await updateClientInDb(c.id, { talentoAsignado: c.talentoAsignado });
+  if (db && t.id) {
     const dbTid = isNaN(Number(t.id)) ? t.id : Number(t.id);
-    await supabaseClient.from('talents').update({
+    await db.from('talents').update({
       disponibilidad: 'Inmediata',
       asignacion: null
     }).eq('id', dbTid);
@@ -1237,7 +1265,7 @@ async function saveCall(clientId) {
   c.calls = c.calls || [];
   c.calls.unshift(call);
 
-  await updateClientInSupabase(c.id, { calls: c.calls });
+  await updateClientInDb(c.id, { calls: c.calls });
 
   document.getElementById('callModal').classList.add('hidden');
   renderClientDetail(clientId);
@@ -1518,7 +1546,7 @@ async function confirmCVAndAdd() {
 
   // High rate warning check
   if (tarifa >= 150) {
-    showToast(`⚠️ Advertencia: Tarifa elevada detectada ($${tarifa} USD/h). Se guardará normalmente en Supabase.`, 'info');
+    showToast(`⚠️ Advertencia: Tarifa elevada detectada ($${tarifa} USD/h). Se guardará normalmente.`, 'info');
     if (tarifa > VX.filters.tarifaMax) {
       VX.filters.tarifaMax = tarifa;
       const tLabel = document.getElementById('tarifaLabel');
@@ -1538,8 +1566,8 @@ async function confirmCVAndAdd() {
 
   let cv_url = null;
   if (currentUploadedCVFile) {
-    showToast('Subiendo archivo CV a Supabase Storage...', 'info');
-    cv_url = await uploadCVFileToSupabase(currentUploadedCVFile);
+    showToast('Subiendo archivo CV...', 'info');
+    cv_url = await uploadFileToServer(currentUploadedCVFile);
   }
 
   const newTalent = {
@@ -1557,12 +1585,12 @@ async function confirmCVAndAdd() {
     activo: true
   };
 
-  if (supabaseClient) {
-    const insertedId = await insertTalentToSupabase(newTalent);
+  if (db) {
+    const insertedId = await insertTalentInDb(newTalent);
     if (insertedId) {
       newTalent.id = insertedId;
     } else {
-      showToast('Guardado en vista local (Verificar tablas en Supabase)', 'info');
+      showToast('Guardado solo en vista local (no se pudo guardar en el servidor)', 'info');
     }
   }
 
@@ -1937,7 +1965,7 @@ function showToast(msg, type = 'info') {
 }
 
 // ---- NOTIFICATIONS ----
-// Últimos talentos y clientes cargados (según created_at en Supabase)
+// Últimos talentos y clientes cargados (según created_at)
 function getNotifications() {
   const items = [
     ...VX.talents.filter(t => t.created_at).map(t => ({ type: 'talent', id: t.id, date: t.created_at, title: t.nombre, sub: `Nuevo talento · ${t.rol}` })),
@@ -1995,8 +2023,41 @@ function openNotification(type, id) {
 
 document.addEventListener('click', () => document.getElementById('notifPanel')?.classList.add('hidden'));
 
+// ---- CAMBIAR CONTRASEÑA ----
+function openPasswordModal() {
+  document.getElementById('passwordForm').reset();
+  document.getElementById('pwdError').classList.add('hidden');
+  document.getElementById('passwordModal').classList.remove('hidden');
+  document.getElementById('pwdActual').focus();
+}
+
+function closePasswordModal() {
+  document.getElementById('passwordModal').classList.add('hidden');
+}
+
+async function changePassword(e) {
+  e.preventDefault();
+  const errorEl = document.getElementById('pwdError');
+  const actual = document.getElementById('pwdActual').value;
+  const nueva = document.getElementById('pwdNueva').value;
+  if (nueva !== document.getElementById('pwdRepetir').value) {
+    errorEl.textContent = 'Las contraseñas nuevas no coinciden.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  const { error } = await api('POST', '/api/password', { actual, nueva });
+  if (error) {
+    errorEl.textContent = error.message;
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  closePasswordModal();
+  showToast('Contraseña actualizada ✓', 'success');
+}
+
 // ---- LOGOUT ----
-function logout() {
+async function logout() {
+  await fetch('/api/logout', { method: 'POST' }).catch(() => {});
   sessionStorage.removeItem('vx_user');
   window.location.href = 'index.html';
 }
@@ -2009,18 +2070,18 @@ function globalSearch(q) {
   }
 }
 
-// ---- SUPABASE DATA SYNC & DIRECT DELETE ----
-async function insertTalentToSupabase(talentObj) {
-  if (!supabaseClient) return null;
+// ---- DATOS & DIRECT DELETE ----
+async function insertTalentInDb(talentObj) {
+  if (!db) return null;
   
   let payload = { ...talentObj };
   
   // Try direct insert with JS arrays/objects
-  let { data, error } = await supabaseClient.from('talents').insert([payload]).select();
+  let { data, error } = await db.from('talents').insert([payload]).select();
   
   // If error occurs, fallback with JSON strings for PostgreSQL text columns
   if (error) {
-    console.warn("Reintentando inserción en Supabase serializando JSON:", error.message);
+    console.warn("Reintentando inserción serializando JSON:", error.message);
     const textPayload = {
       ...talentObj,
       stack: JSON.stringify(talentObj.stack || []),
@@ -2028,22 +2089,22 @@ async function insertTalentToSupabase(talentObj) {
       proyectos: JSON.stringify(talentObj.proyectos || []),
       asignacion: talentObj.asignacion ? JSON.stringify(talentObj.asignacion) : null
     };
-    const retry = await supabaseClient.from('talents').insert([textPayload]).select();
+    const retry = await db.from('talents').insert([textPayload]).select();
     data = retry.data;
     error = retry.error;
   }
   
   if (error) {
-    console.error("Error al insertar en Supabase:", error);
+    console.error("Error al insertar talento:", error);
     return null;
   }
   return data && data.length > 0 ? data[0].id : null;
 }
 
-async function fetchFromSupabase() {
-  if (!supabaseClient) return;
+async function fetchFromDb() {
+  if (!db) return;
   try {
-    const { data: talentsData, error: tErr } = await supabaseClient.from('talents').select('*').order('id', { ascending: false });
+    const { data: talentsData, error: tErr } = await db.from('talents').select('*').order('id', { ascending: false });
     if (!tErr && talentsData && talentsData.length > 0) {
       const dbTalents = talentsData.map(t => {
         let parsedStack = [];
@@ -2089,7 +2150,7 @@ async function fetchFromSupabase() {
       applyFilters();
     }
 
-    const { data: clientsData, error: cErr } = await supabaseClient.from('clients').select('*').order('id', { ascending: true });
+    const { data: clientsData, error: cErr } = await db.from('clients').select('*').order('id', { ascending: true });
     if (!cErr && clientsData && clientsData.length > 0) {
       VX.clients = clientsData.map(c => {
         let rawNotas = c.notas || '';
@@ -2170,7 +2231,7 @@ async function fetchFromSupabase() {
     }
     updateNotifDot();
   } catch (err) {
-    console.error('Error sincronizando con Supabase:', err);
+    console.error('Error cargando datos:', err);
   }
 }
 
@@ -2224,7 +2285,7 @@ function closeClientModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-async function saveClientToSupabase(e) {
+async function saveClient(e) {
   if (e) e.preventDefault();
   
   const id = document.getElementById('clientFormId')?.value;
@@ -2257,24 +2318,24 @@ async function saveClientToSupabase(e) {
   if (necesidades) payload.necesidades = necesidades;
   if (notas) payload.notas = notas;
 
-  if (supabaseClient) {
+  if (db) {
     if (id) {
-      const { error } = await supabaseClient.from('clients').update(payload).eq('id', id);
+      const { error } = await db.from('clients').update(payload).eq('id', id);
       if (error) {
         console.error('Error actualizando cliente:', error);
         showToast(`Error: ${error.message}`, 'error');
         return;
       }
     } else {
-      let { data, error } = await supabaseClient.from('clients').insert([payload]).select();
+      let { data, error } = await db.from('clients').insert([payload]).select();
       if (error) {
         // Retry with only guaranteed columns
         console.warn('Insert falló, reintentando sin notas/necesidades:', error.message);
         const safe = { nombre, empresa: nombre, industria, pais, contacto_principal: contacto, telefono, email, estado: 'Activo' };
-        const retry = await supabaseClient.from('clients').insert([safe]).select();
+        const retry = await db.from('clients').insert([safe]).select();
         if (retry.error) {
           console.error('Error al insertar cliente:', retry.error);
-          showToast(`Error Supabase: ${retry.error.message}`, 'error');
+          showToast(`Error al guardar: ${retry.error.message}`, 'error');
           return;
         }
         data = retry.data;
@@ -2285,27 +2346,27 @@ async function saveClientToSupabase(e) {
 
   closeClientModal();
   showToast('Cliente guardado correctamente ✓', 'success');
-  await fetchFromSupabase();
+  await fetchFromDb();
 }
 
 
 async function deleteTalentDirectly(id) {
-  if (!confirm('¿Seguro que querés eliminar este talento de Supabase?')) return;
+  if (!confirm('¿Seguro que querés eliminar este talento?')) return;
   
   const talent = VX.talents.find(t => String(t.id) === String(id));
-  if (talent && talent.cv_url && supabaseClient) {
+  if (talent && talent.cv_url && db) {
     try {
       const fileName = talent.cv_url.split('/').pop();
       if (fileName) {
-        await supabaseClient.storage.from('cvs').remove([fileName]);
+        await db.storage.from('cvs').remove([fileName]);
       }
     } catch(e) { console.error('Error eliminando archivo CV:', e); }
   }
 
-  if (supabaseClient) {
-    const { error } = await supabaseClient.from('talents').delete().eq('id', id);
+  if (db) {
+    const { error } = await db.from('talents').delete().eq('id', id);
     if (error) {
-      showToast('Error al eliminar talento de Supabase', 'error');
+      showToast('Error al eliminar talento', 'error');
       return;
     }
   }
@@ -2314,24 +2375,24 @@ async function deleteTalentDirectly(id) {
   VX.filteredTalents = VX.filteredTalents.filter(t => String(t.id) !== String(id));
   VX.selectedTalents.delete(String(id));
   closeTalentModal();
-  showToast('Talento eliminado correctamente de Supabase', 'success');
+  showToast('Talento eliminado correctamente', 'success');
   renderTalentGrid();
 }
 
 async function deleteClientDirectly(id) {
-  if (!confirm('¿Seguro que querés eliminar este cliente de Supabase? Se borrarán sus propuestas vinculadas.')) return;
+  if (!confirm('¿Seguro que querés eliminar este cliente? Se borrarán sus propuestas vinculadas.')) return;
 
-  if (supabaseClient) {
-    const { error } = await supabaseClient.from('clients').delete().eq('id', id);
+  if (db) {
+    const { error } = await db.from('clients').delete().eq('id', id);
     if (error) {
-      showToast('Error al eliminar cliente de Supabase', 'error');
+      showToast('Error al eliminar cliente', 'error');
       return;
     }
   }
 
   VX.clients = VX.clients.filter(c => String(c.id) !== String(id));
   VX.activeclientId = VX.clients[0]?.id || null;
-  showToast('Cliente eliminado correctamente de Supabase', 'success');
+  showToast('Cliente eliminado correctamente', 'success');
   renderClientes();
 }
 
@@ -2353,8 +2414,8 @@ function toggleInlineEdit(clientId, field) {
   }
 }
 
-async function updateClientInSupabase(clientId, payload) {
-  if (!supabaseClient || !clientId) return true;
+async function updateClientInDb(clientId, payload) {
+  if (!db || !clientId) return true;
   const dbId = isNaN(Number(clientId)) ? clientId : Number(clientId);
 
   // Only send fields that actually exist in the clients table
@@ -2371,9 +2432,9 @@ async function updateClientInSupabase(clientId, payload) {
 
   if (Object.keys(updateObj).length === 0) return true;
 
-  const { error } = await supabaseClient.from('clients').update(updateObj).eq('id', dbId);
+  const { error } = await db.from('clients').update(updateObj).eq('id', dbId);
   if (error) {
-    console.error('Error actualizando cliente en Supabase:', error.message);
+    console.error('Error actualizando cliente:', error.message);
     return false;
   }
   return true;
@@ -2397,7 +2458,7 @@ async function saveInlineClientField(clientId, field) {
   const newValue = textarea.value.trim();
   c[field] = newValue;
 
-  const ok = await updateClientInSupabase(c.id, { [field]: newValue });
+  const ok = await updateClientInDb(c.id, { [field]: newValue });
 
   if (ok) {
     showToast('Cambios guardados correctamente ✓', 'success');
@@ -2422,8 +2483,8 @@ async function handleClientFileUpload(clientId, inputEl) {
   showToast('Subiendo archivo de cliente...', 'info');
 
   let fileUrl = null;
-  if (supabaseClient) {
-    fileUrl = await uploadCVFileToSupabase(file);
+  if (db) {
+    fileUrl = await uploadFileToServer(file);
   }
 
   c.archivos = c.archivos || [];
@@ -2436,7 +2497,7 @@ async function handleClientFileUpload(clientId, inputEl) {
   };
   c.archivos.push(fileObj);
 
-  await updateClientInSupabase(c.id, { archivos: c.archivos });
+  await updateClientInDb(c.id, { archivos: c.archivos });
 
   showToast(`Archivo "${file.name}" subido correctamente ✓`, 'success');
   renderClientDetail(clientId);
@@ -2448,7 +2509,7 @@ async function deleteClientFile(clientId, fileId) {
 
   c.archivos = (c.archivos || []).filter(f => String(f.id) !== String(fileId));
 
-  await updateClientInSupabase(c.id, { archivos: c.archivos });
+  await updateClientInDb(c.id, { archivos: c.archivos });
 
   showToast('Archivo eliminado', 'info');
   renderClientDetail(clientId);
@@ -2469,7 +2530,7 @@ async function markClientCompleted(clientId) {
     }
   });
 
-  await updateClientInSupabase(c.id, {
+  await updateClientInDb(c.id, {
     estado: 'Completed',
     talentoAsignado: c.talentoAsignado,
     propuestaTexto: c.propuestaTexto || ''
@@ -2493,7 +2554,7 @@ async function unmarkClientCompleted(clientId) {
 
   c.estado = 'Activo';
 
-  await updateClientInSupabase(c.id, { estado: 'Activo' });
+  await updateClientInDb(c.id, { estado: 'Activo' });
 
   showToast(`Estado de "${c.nombre}" revertido a Activo.`, 'info');
   renderClientList();
@@ -2501,17 +2562,17 @@ async function unmarkClientCompleted(clientId) {
   if (VX.currentSection === 'propuestas') renderPropuestas();
 }
 
-async function uploadCVFileToSupabase(file) {
-  if (!supabaseClient || !file) return null;
+async function uploadFileToServer(file) {
+  if (!db || !file) return null;
   const fileExt = file.name.split('.').pop();
   const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
   
-  const { data, error } = await supabaseClient.storage.from('cvs').upload(fileName, file);
+  const { data, error } = await db.storage.from('cvs').upload(fileName, file);
   if (error) {
-    console.error('Error subiendo CV a Supabase Storage:', error);
+    console.error('Error subiendo archivo:', error);
     return null;
   }
-  const { data: publicData } = supabaseClient.storage.from('cvs').getPublicUrl(fileName);
+  const { data: publicData } = db.storage.from('cvs').getPublicUrl(fileName);
   return publicData?.publicUrl || null;
 }
 
@@ -2526,75 +2587,19 @@ document.addEventListener('DOMContentLoaded', () => {
   if (userRoleEl) userRoleEl.textContent = user.role || 'Staffing Lead';
   if (userInitialsEl) userInitialsEl.textContent = getInitials(user.name || 'Admin');
 
-  // Init sections & Supabase
+  // Init sections y datos
   navigate('talentos');
   initCVParser();
-  fetchFromSupabase().then(() => initRealtimeSubscriptions());
+  fetchFromDb().then(() => initFocusSync());
 });
 
-// ---- SUPABASE REALTIME ----
-function initRealtimeSubscriptions() {
-  if (!supabaseClient) return;
-
-  // ---- TALENTS ----
-  supabaseClient
-    .channel('realtime:talents')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'talents' }, (payload) => {
-      const { eventType, new: newRow, old: oldRow } = payload;
-
-      if (eventType === 'DELETE') {
-        VX.talents = VX.talents.filter(t => String(t.id) !== String(oldRow.id));
-      } else if (eventType === 'INSERT') {
-        // Only add if not already present
-        if (!VX.talents.find(t => String(t.id) === String(newRow.id))) {
-          VX.talents.unshift(mapTalentRow(newRow));
-        }
-      } else if (eventType === 'UPDATE') {
-        const idx = VX.talents.findIndex(t => String(t.id) === String(newRow.id));
-        if (idx !== -1) VX.talents[idx] = mapTalentRow(newRow);
-        else VX.talents.unshift(mapTalentRow(newRow));
-      }
-
-      applyFilters();
-      updateNotifDot();
-    })
-    .subscribe();
-
-  // ---- CLIENTS ----
-  supabaseClient
-    .channel('realtime:clients')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, (payload) => {
-      const { eventType, new: newRow, old: oldRow } = payload;
-
-      if (eventType === 'DELETE') {
-        VX.clients = VX.clients.filter(c => String(c.id) !== String(oldRow.id));
-        if (String(VX.activeclientId) === String(oldRow.id)) {
-          VX.activeclientId = VX.clients[0]?.id || null;
-        }
-      } else if (eventType === 'INSERT') {
-        if (!VX.clients.find(c => String(c.id) === String(newRow.id))) {
-          VX.clients.push(mapClientRow(newRow));
-        }
-      } else if (eventType === 'UPDATE') {
-        const idx = VX.clients.findIndex(c => String(c.id) === String(newRow.id));
-        const mapped = mapClientRow(newRow);
-        if (idx !== -1) VX.clients[idx] = mapped;
-        else VX.clients.push(mapped);
-      }
-
-      renderClientList();
-      if (VX.currentSection === 'clientes' && VX.activeclientId) {
-        renderClientDetail(VX.activeclientId);
-      }
-      if (VX.currentSection === 'propuestas') renderPropuestas();
-      updateNotifDot();
-    })
-    .subscribe();
-
-  console.log('✓ Supabase Realtime activo para talents y clients');
+// ---- SINCRONIZACIÓN ----
+// Al volver a la pestaña se recargan los datos, para ver lo que cargaron otras personas.
+function initFocusSync() {
+  window.addEventListener('focus', () => fetchFromDb());
 }
 
-// Maps a raw Supabase talents row to the VX.talents format
+// Maps a raw talents row to the VX.talents format
 function mapTalentRow(t) {
   let parsedStack = [];
   try { parsedStack = Array.isArray(t.stack) ? t.stack : JSON.parse(t.stack || '[]'); } catch(e) { parsedStack = ['IT']; }
@@ -2619,7 +2624,7 @@ function mapTalentRow(t) {
   };
 }
 
-// Maps a raw Supabase clients row to the VX.clients format
+// Maps a raw clients row to the VX.clients format
 function mapClientRow(c) {
   let calls = [];
   try { calls = Array.isArray(c.calls) ? c.calls : JSON.parse(c.calls || '[]'); } catch(e) {}

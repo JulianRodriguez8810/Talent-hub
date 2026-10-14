@@ -93,19 +93,6 @@
   </div>
 
   <div class="w-full max-w-5xl relative z-10 fade-in">
-    <!-- Status bar -->
-    <div class="flex items-center justify-between mb-6 px-2">
-      <div class="flex items-center gap-2 bg-surface-card px-3 py-1.5 rounded-full shadow-sm border border-border-subtle">
-        <span class="inline-block w-2 h-2 rounded-full bg-status-available animate-pulse"></span>
-        <span class="text-label-sm font-label text-text-heading">Azure Cloud Node: SA-East (São Paulo)</span>
-        <span class="text-label-sm font-label text-text-muted">• 99.99% Up</span>
-      </div>
-      <div class="flex items-center gap-2 bg-surface-card px-3 py-1.5 rounded-full shadow-sm border border-border-subtle">
-        <span class="material-symbols-outlined text-[16px] text-primary">lock</span>
-        <span class="text-label-sm font-label text-text-muted">TLS 1.3 Encriptado</span>
-      </div>
-    </div>
-
     <!-- Main card -->
     <div class="w-full bg-surface-card rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
 
@@ -136,62 +123,6 @@
           </p>
         </div>
 
-        <!-- Center metrics panel -->
-        <div class="relative z-10 my-8 bg-surface-card/10 backdrop-blur-md rounded-xl p-4 border border-surface-card/20">
-          <div class="flex items-center justify-between pb-3 mb-3 border-b border-surface-card/15">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-legacy-brand-mint text-[18px]">verified_user</span>
-              <span class="text-label-sm font-label text-on-primary">Azure Active Directory</span>
-            </div>
-            <span class="text-label-sm font-label bg-status-available/20 text-legacy-brand-mint px-2 py-0.5 rounded-full font-bold">SSO v2.4</span>
-          </div>
-
-          <div class="space-y-3">
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-label-sm font-label text-primary-fixed/80">Capacidad de Bench</span>
-                <span class="text-label-sm font-label text-on-primary font-bold">89.4%</span>
-              </div>
-              <div class="w-full h-1.5 bg-surface-card/20 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-legacy-brand-mint to-tertiary-fixed-dim rounded-full" style="width:89.4%"></div>
-              </div>
-            </div>
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-label-sm font-label text-primary-fixed/80">Match Score Promedio</span>
-                <span class="text-label-sm font-label text-on-primary font-bold">96.8%</span>
-              </div>
-              <div class="w-full h-1.5 bg-surface-card/20 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-primary-fixed to-status-available rounded-full" style="width:96.8%"></div>
-              </div>
-            </div>
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-label-sm font-label text-primary-fixed/80">Satisfacción de Clientes</span>
-                <span class="text-label-sm font-label text-on-primary font-bold">4.9/5.0</span>
-              </div>
-              <div class="w-full h-1.5 bg-surface-card/20 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-status-placed to-tertiary-fixed-dim rounded-full" style="width:98%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bottom stats row -->
-        <div class="relative z-10 grid grid-cols-3 gap-3">
-          <div class="text-center">
-            <div class="text-headline-lg font-sans font-bold text-on-primary">342</div>
-            <div class="text-label-sm font-label text-primary-fixed/70 uppercase tracking-wider">Talentos</div>
-          </div>
-          <div class="text-center border-x border-surface-card/20">
-            <div class="text-headline-lg font-sans font-bold text-legacy-brand-mint">48</div>
-            <div class="text-label-sm font-label text-primary-fixed/70 uppercase tracking-wider">En Bench</div>
-          </div>
-          <div class="text-center">
-            <div class="text-headline-lg font-sans font-bold text-tertiary-fixed-dim">24</div>
-            <div class="text-label-sm font-label text-primary-fixed/70 uppercase tracking-wider">Clientes</div>
-          </div>
-        </div>
       </div>
 
       <!-- Right panel: Login form -->
@@ -205,16 +136,6 @@
             </div>
             <h2 class="text-headline-xl font-sans font-bold text-text-heading mb-2">Bienvenido de vuelta</h2>
             <p class="text-body-md font-sans text-text-muted">Ingresá con tu cuenta de Virtual Xpert para acceder al Talent Hub.</p>
-          </div>
-
-          <!-- Demo credentials notice -->
-          <div class="mb-6 p-3 rounded-xl bg-surface-container-low border border-border-subtle flex items-start gap-3">
-            <span class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">info</span>
-            <div>
-              <p class="text-label-md font-label text-text-heading font-bold mb-0.5">Credenciales de demo</p>
-              <p class="text-body-sm font-sans text-text-muted">Email: <code class="bg-surface-container px-1 rounded text-primary">admin@virtual-xpert.net</code></p>
-              <p class="text-body-sm font-sans text-text-muted">Password: <code class="bg-surface-container px-1 rounded text-primary">VX2024</code></p>
-            </div>
           </div>
 
           <!-- Form -->
@@ -238,7 +159,6 @@
             <div class="flex flex-col gap-1.5">
               <div class="flex items-center justify-between">
                 <label class="text-label-lg font-label text-text-heading" for="password">Contraseña</label>
-                <button type="button" class="text-label-md font-label text-primary hover:underline">¿Olvidaste tu contraseña?</button>
               </div>
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">lock</span>
@@ -255,18 +175,6 @@
               </div>
             </div>
 
-            <!-- Remember + 2FA -->
-            <div class="flex items-center justify-between">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" id="remember" class="w-4 h-4 rounded border-border-strong accent-primary"/>
-                <span class="text-body-md font-sans text-text-body">Recordar sesión (30 días)</span>
-              </label>
-              <div class="flex items-center gap-1.5 text-label-sm font-label text-status-available">
-                <span class="material-symbols-outlined text-[14px]">shield</span>
-                <span>MFA Activo</span>
-              </div>
-            </div>
-
             <!-- Error msg -->
             <div id="errorMsg" class="hidden p-3 rounded-lg bg-error-container border border-error/20 flex items-center gap-2">
               <span class="material-symbols-outlined text-error text-[18px]">error</span>
@@ -280,29 +188,8 @@
               <span id="btnLoader" class="hidden w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></span>
             </button>
 
-            <!-- Divider -->
-            <div class="flex items-center gap-3 my-1">
-              <div class="flex-1 h-px bg-border-subtle"></div>
-              <span class="text-label-sm font-label text-text-muted">o continuá con</span>
-              <div class="flex-1 h-px bg-border-subtle"></div>
-            </div>
-
-            <!-- SSO Button -->
-            <button type="button" onclick="handleSSO()" class="w-full h-11 rounded-lg border border-border-strong bg-surface-card text-text-heading text-label-lg font-label font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low transition-all">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M12.0002 4.8C13.5502 4.8 14.9302 5.34 16.0102 6.24L19.0102 3.24C17.0802 1.53 14.6602 0.5 12.0002 0.5C7.53017 0.5 3.73017 3.13 1.87017 6.91L5.27017 9.57C6.13017 6.83 8.84017 4.8 12.0002 4.8Z" fill="#EA4335"/>
-                <path d="M23.49 12.27C23.49 11.48 23.42 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.39 20.69C21.38 18.84 23.49 15.84 23.49 12.27Z" fill="#4285F4"/>
-                <path d="M5.27 14.43C5.06 13.83 4.94 13.18 4.94 12.5C4.94 11.82 5.06 11.17 5.27 10.57L1.87 7.91C1.08 9.49 0.629997 11.23 0.629997 12.5C0.629997 13.77 1.08 15.51 1.87 17.09L5.27 14.43Z" fill="#FBBC05"/>
-                <path d="M12.0002 23.5C14.6602 23.5 16.9002 22.61 18.5602 21.04L15.2502 18.45C14.3702 19.05 13.2602 19.45 12.0002 19.45C8.84017 19.45 6.13017 17.42 5.27017 14.68L1.87017 17.34C3.73017 21.12 7.53017 23.5 12.0002 23.5Z" fill="#34A853"/>
-              </svg>
-              Continuar con Google (SSO)
-            </button>
           </form>
 
-          <!-- Footer -->
-          <p class="mt-6 text-center text-body-sm font-sans text-text-muted">
-            ¿Necesitás acceso? <a href="mailto:it@virtual-xpert.net" class="text-primary hover:underline font-bold">Contactá a IT</a>
-          </p>
         </div>
       </div>
     </div>
@@ -343,16 +230,17 @@
       submitBtn.disabled = true;
       errorMsg.classList.add('hidden');
 
-      setTimeout(() => {
-        // Demo credentials check
-        const validEmails = ['admin@virtual-xpert.net', 'staffing@virtual-xpert.net'];
-        const validPwd = 'VX2024';
-
-        if ((validEmails.includes(email) || email.endsWith('@virtual-xpert.net')) && password === validPwd) {
+      // La contraseña la valida el servidor (server.mjs), que deja una cookie de sesión.
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      }).then(r => r.ok ? r.json() : null).catch(() => null).then(user => {
+        if (user) {
           // Store session
           sessionStorage.setItem('vx_user', JSON.stringify({
-            name: email === 'admin@virtual-xpert.net' ? 'Admin Xpert' : email.split('@')[0],
-            email: email,
+            name: user.nombre,
+            email: user.email,
             role: 'Staffing Lead',
             avatar: null
           }));
@@ -374,15 +262,9 @@
           submitBtn.disabled = false;
           submitBtn.style.background = '';
         }
-      }, 1200);
+      });
     }
 
-    function handleSSO() {
-      // Simulate SSO flow
-      document.getElementById('email').value = 'admin@virtual-xpert.net';
-      document.getElementById('password').value = 'VX2024';
-      document.getElementById('loginForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    }
   </script>
 </body>
 </html>

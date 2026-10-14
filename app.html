@@ -157,7 +157,10 @@
           <span class="text-label-md font-label text-text-heading leading-tight" id="userName">Admin</span>
           <span class="text-label-sm font-label text-text-muted leading-tight" id="userRole">Staffing Lead</span>
         </div>
-        <button onclick="logout()" class="hidden xl:flex items-center p-1.5 rounded-lg text-text-muted hover:text-error hover:bg-error-container transition-all ml-1" title="Cerrar sesión">
+        <button onclick="openPasswordModal()" class="hidden xl:flex items-center p-1.5 rounded-lg text-text-muted hover:text-text-heading hover:bg-surface-container-low transition-all ml-1" title="Cambiar contraseña">
+          <span class="material-symbols-outlined text-[18px]">key</span>
+        </button>
+        <button onclick="logout()" class="hidden xl:flex items-center p-1.5 rounded-lg text-text-muted hover:text-error hover:bg-error-container transition-all" title="Cerrar sesión">
           <span class="material-symbols-outlined text-[18px]">logout</span>
         </button>
       </div>
@@ -315,6 +318,10 @@
       </div>
       <span class="material-symbols-outlined text-text-muted text-[16px]">lock</span>
     </div>
+    <button onclick="openPasswordModal()" class="flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant text-label-md font-label hover:bg-surface-container-low hover:text-text-heading transition-all w-full text-left">
+      <span class="material-symbols-outlined text-[18px]">key</span>
+      <span>Cambiar contraseña</span>
+    </button>
     <button onclick="logout()" class="flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant text-label-md font-label hover:bg-error-container hover:text-error transition-all w-full text-left">
       <span class="material-symbols-outlined text-[18px]">logout</span>
       <span>Cerrar sesión</span>
@@ -709,7 +716,7 @@
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
-    <form id="clientForm" onsubmit="saveClientToSupabase(event)" class="flex flex-col gap-3">
+    <form id="clientForm" onsubmit="saveClient(event)" class="flex flex-col gap-3">
       <input type="hidden" id="clientFormId" value=""/>
       <div>
         <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Nombre Empresa / Cliente *</label>
@@ -757,8 +764,43 @@
   </div>
 </div>
 
+<!-- ============================================================
+     CHANGE PASSWORD MODAL
+============================================================ -->
+<div id="passwordModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closePasswordModal()"></div>
+  <div class="relative w-full max-w-sm bg-surface-card rounded-2xl shadow-2xl p-6 z-10 border border-border-subtle">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-headline-md font-sans font-bold text-text-heading flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">key</span>Cambiar contraseña
+      </h3>
+      <button onclick="closePasswordModal()" class="p-1 rounded-lg text-text-muted hover:text-text-heading">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form id="passwordForm" onsubmit="changePassword(event)" class="flex flex-col gap-3">
+      <div>
+        <label class="text-label-sm font-label font-bold text-text-heading block mb-1" for="pwdActual">Contraseña actual</label>
+        <input type="password" id="pwdActual" required autocomplete="current-password" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
+      </div>
+      <div>
+        <label class="text-label-sm font-label font-bold text-text-heading block mb-1" for="pwdNueva">Nueva contraseña (mínimo 8 caracteres)</label>
+        <input type="password" id="pwdNueva" required minlength="8" autocomplete="new-password" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
+      </div>
+      <div>
+        <label class="text-label-sm font-label font-bold text-text-heading block mb-1" for="pwdRepetir">Repetir nueva contraseña</label>
+        <input type="password" id="pwdRepetir" required minlength="8" autocomplete="new-password" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
+      </div>
+      <p id="pwdError" class="hidden text-body-sm font-sans text-error"></p>
+      <div class="flex justify-end gap-2 mt-2 pt-3 border-t border-border-subtle">
+        <button type="button" onclick="closePasswordModal()" class="px-4 py-2.5 rounded-xl border border-border-strong text-text-heading text-label-md font-label font-bold hover:bg-surface-container-low">Cancelar</button>
+        <button type="submit" class="px-5 py-2.5 rounded-xl bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 </body>
 </html>

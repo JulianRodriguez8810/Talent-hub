@@ -22,3 +22,7 @@ Thumbs.db
 # Local
 .hotplate
 stitch_virtual_xpert_talent_hub
+
+# Datos del servidor propio (base y archivos)
+data
+servidor.log
