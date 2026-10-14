@@ -160,7 +160,7 @@
       <!-- User avatar -->
       <div class="flex items-center gap-2 pl-2 border-l border-border-subtle ml-1">
         <div class="relative">
-          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[13px]" id="userInitials">A</div>
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary-container font-sans font-bold text-[13px] cursor-pointer" id="userInitials" title="Cambiar foto" onclick="document.getElementById('avatarInput').click()">A</div>
           <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-status-available ring-2 ring-surface-card"></span>
         </div>
         <div class="hidden xl:flex flex-col">
@@ -331,6 +331,11 @@
       </div>
       <span class="material-symbols-outlined text-text-muted text-[16px]">lock</span>
     </div>
+    <input type="file" id="avatarInput" accept="image/*" class="hidden" onchange="changeAvatar(this)"/>
+    <button onclick="document.getElementById('avatarInput').click()" class="flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant text-label-md font-label hover:bg-surface-container-low hover:text-text-heading transition-all w-full text-left">
+      <span class="material-symbols-outlined text-[18px]">account_circle</span>
+      <span>Cambiar foto</span>
+    </button>
     <button onclick="openPasswordModal()" class="flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant text-label-md font-label hover:bg-surface-container-low hover:text-text-heading transition-all w-full text-left">
       <span class="material-symbols-outlined text-[18px]">key</span>
       <span>Cambiar contraseña</span>

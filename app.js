@@ -2588,6 +2588,44 @@ async function uploadFileToServer(file) {
   return publicData?.publicUrl || null;
 }
 
+// ---- FOTO DE PERFIL ----
+// Si el usuario tiene foto, reemplaza las iniciales del encabezado.
+function loadAvatar() {
+  const el = document.getElementById('userInitials');
+  if (!el) return;
+  const img = new Image();
+  img.onload = () => {
+    el.textContent = '';
+    img.className = 'w-full h-full object-cover rounded-full';
+    el.classList.add('overflow-hidden', 'rounded-full');
+    el.appendChild(img);
+  };
+  img.alt = '';
+  img.src = `/api/avatar?v=${Date.now()}`;
+}
+
+// Recorta al centro en cuadrado, achica a 256 px y sube como JPEG.
+function changeAvatar(input) {
+  const file = input.files[0];
+  input.value = '';
+  if (!file) return;
+  const img = new Image();
+  img.onload = async () => {
+    const side = Math.min(img.width, img.height);
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 256;
+    canvas.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, 256, 256);
+    URL.revokeObjectURL(img.src);
+    const blob = await new Promise(ok => canvas.toBlob(ok, 'image/jpeg', 0.88));
+    const { error } = await api('PUT', '/api/avatar', blob, true);
+    if (error) { showToast(`No se pudo guardar la foto: ${error.message}`, 'error'); return; }
+    loadAvatar();
+    showToast('Foto actualizada ✓', 'success');
+  };
+  img.onerror = () => showToast('No se pudo leer la imagen', 'error');
+  img.src = URL.createObjectURL(file);
+}
+
 // ---- INIT ----
 document.addEventListener('DOMContentLoaded', () => {
   // Set user info
@@ -2598,6 +2636,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (userNameEl) userNameEl.textContent = user.name;
   if (userRoleEl) userRoleEl.textContent = user.role || 'Staffing Lead';
   if (userInitialsEl) userInitialsEl.textContent = getInitials(user.name || 'Admin');
+  loadAvatar();
 
   // Init sections y datos
   navigate('talentos');

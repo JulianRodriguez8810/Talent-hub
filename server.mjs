@@ -16,6 +16,8 @@ if (!env.TH_SECRET) { console.error('Falta TH_SECRET en .env'); process.exit(1);
 const DATA = path.join(ROOT, 'data');
 const CVS = path.join(DATA, 'cvs');
 fs.mkdirSync(CVS, { recursive: true });
+const AVATARS = path.join(DATA, 'avatars');
+fs.mkdirSync(AVATARS, { recursive: true });
 const db = new DatabaseSync(path.join(DATA, 'talenthub.db'));
 db.exec('PRAGMA journal_mode = WAL');
 // Cada fila es un documento JSON: la app agrega campos sin necesidad de migraciones.
@@ -69,6 +71,7 @@ function backup() {
       const dst = path.join(dir, 'cvs', f);
       if (!fs.existsSync(dst)) fs.copyFileSync(path.join(CVS, f), dst);
     }
+    fs.cpSync(AVATARS, path.join(dir, 'avatars'), { recursive: true });
     fs.readdirSync(dir).filter((f) => /^talenthub-.*\.db$/.test(f)).sort().slice(0, -14).forEach((f) => fs.rmSync(path.join(dir, f)));
     lastBackup = new Date().toISOString();
     console.log(`${lastBackup} copia de seguridad en ${file}`);
@@ -178,6 +181,22 @@ async function handle(req, res) {
     db.prepare('UPDATE users SET hash = ? WHERE email = ?').run(hashPassword(String(nueva)), user.email);
     console.log(`${new Date().toISOString()} ${user.email} cambió su contraseña`);
     return send(res, 200, { ok: true }, { 'Set-Cookie': makeCookie(getUser(user.email), isHttps(req)) });
+  }
+
+  // Foto de perfil del usuario con sesión (la app la achica a JPEG antes de subirla).
+  if (p === '/api/avatar') {
+    const file = path.join(AVATARS, `${user.email}.jpg`);
+    if (req.method === 'GET') {
+      if (!fs.existsSync(file)) return send(res, 404, { error: 'Sin foto' });
+      res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'no-cache' });
+      return fs.createReadStream(file).pipe(res);
+    }
+    if (req.method === 'PUT') {
+      const body = await readBody(req);
+      if (body.length > 2 * 1024 * 1024 || body[0] !== 0xff || body[1] !== 0xd8) return send(res, 400, { error: 'La foto tiene que ser JPEG de hasta 2 MB' });
+      fs.writeFileSync(file, body);
+      return send(res, 200, { ok: true });
+    }
   }
 
   const cv = p.match(/^\/(?:api\/)?cvs\/([^/]+)$/);
