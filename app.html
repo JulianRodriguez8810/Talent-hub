@@ -89,6 +89,13 @@
     .text-headline-xl { font-size: 36px; line-height: 42px; font-weight: 600; letter-spacing: -0.035em; }
     .text-headline-lg { font-weight: 600; letter-spacing: -0.03em; }
     .material-symbols-outlined { font-variation-settings: 'wght' 350; }
+    /* Celular y tablet: el menú lateral se despliega encima del contenido */
+    @media (max-width: 1023px) {
+      body > aside { background: #ECEBE7 !important; box-shadow: 8px 0 24px rgba(17,17,17,0.18) !important; }
+    }
+    @media (max-width: 639px) {
+      .text-headline-xl { font-size: 28px; line-height: 34px; }
+    }
     .talent-card { transition: transform .2s ease, box-shadow .2s ease; }
     .talent-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -12px rgba(17,17,17,0.18), 0 0 0 1px rgba(17,17,17,0.05); }
     @media print {
@@ -118,14 +125,17 @@
      HEADER
 ============================================================ -->
 <header class="fixed top-0 left-0 right-0 z-50 h-16 bg-surface-card/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.05)] border-b border-border-subtle">
-  <div class="h-16 w-full px-gutter flex items-center justify-between gap-4">
+  <div class="h-16 w-full px-gutter-mobile sm:px-gutter flex items-center justify-between gap-2 sm:gap-4">
     <!-- Logo + brand -->
-    <div class="flex items-center gap-3 min-w-[248px]">
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0 lg:min-w-[248px]">
+      <button onclick="toggleSidebar()" class="lg:hidden p-2 -ml-1 rounded-xl text-text-heading hover:bg-surface-container-low no-print" type="button" title="Menú" aria-label="Abrir menú">
+        <span class="material-symbols-outlined text-[24px]">menu</span>
+      </button>
       <div class="w-9 h-9 rounded-full bg-gradient-to-br from-legacy-brand-navy to-primary flex items-center justify-center shrink-0">
         <span class="material-symbols-outlined text-tertiary-fixed text-[20px]">hub</span>
       </div>
-      <div class="flex flex-col">
-        <span class="text-headline-sm font-sans font-bold text-text-heading leading-tight">Virtual Xpert</span>
+      <div class="flex flex-col min-w-0">
+        <span class="text-headline-sm font-sans font-bold text-text-heading leading-tight truncate">Virtual Xpert</span>
         <div class="flex items-center gap-1.5">
           <span class="w-1.5 h-1.5 rounded-full bg-status-available"></span>
           <span class="text-label-sm font-label text-text-muted">Talent Hub · Azure</span>
@@ -181,7 +191,8 @@
 <!-- ============================================================
      SIDEBAR
 ============================================================ -->
-<aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface-card z-40 flex flex-col justify-between p-4 shadow-[1px_0_8px_rgba(0,0,0,0.04)] border-r border-border-subtle no-print overflow-y-auto">
+<div id="sidebarBackdrop" onclick="toggleSidebar(false)" class="hidden fixed inset-0 top-16 z-30 bg-black/40 lg:hidden no-print"></div>
+<aside id="sidebar" class="fixed left-0 top-16 bottom-0 w-72 max-w-[85vw] lg:w-64 bg-surface-card z-40 -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col justify-between p-4 shadow-[1px_0_8px_rgba(0,0,0,0.04)] border-r border-border-subtle no-print overflow-y-auto">
   <div class="flex flex-col gap-4">
     <!-- Nav label -->
     <div class="px-2 py-1 flex items-center justify-between">
@@ -350,14 +361,14 @@
 <!-- ============================================================
      MAIN CONTENT
 ============================================================ -->
-<div class="pl-64">
-  <main class="w-full pt-16 bg-surface-canvas min-h-screen">
+<div class="lg:pl-64">
+  <main class="w-full pt-16 bg-surface-canvas min-h-screen overflow-x-hidden">
 
     <!-- SELECTION BANNER -->
-    <div id="selectionBanner" class="hidden fixed top-16 left-64 right-0 z-30 bg-primary-container border-b border-primary/20 px-gutter py-2.5 flex items-center justify-between gap-4 shadow-sm no-print">
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-on-primary-container text-[20px]">co_present</span>
-        <span class="text-label-lg font-label font-bold text-on-primary-container"><span id="selectionCount">0</span> talentos seleccionados para propuesta</span>
+    <div id="selectionBanner" class="hidden fixed top-16 left-0 lg:left-64 right-0 z-30 bg-primary-container border-b border-primary/20 px-gutter-mobile sm:px-gutter py-2.5 flex items-center justify-between gap-2 sm:gap-4 shadow-sm no-print">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <span class="material-symbols-outlined text-on-primary-container text-[20px] shrink-0">co_present</span>
+        <span class="text-label-lg font-label font-bold text-on-primary-container truncate"><span id="selectionCount">0</span> <span class="hidden sm:inline">talentos seleccionados para propuesta</span><span class="sm:hidden">seleccionados</span></span>
       </div>
       <div class="flex items-center gap-2">
         <button onclick="navigate('propuestas')" class="px-4 py-1.5 rounded-lg bg-surface-card text-primary text-label-md font-label font-bold hover:bg-surface-container transition-all">Ver Propuesta</button>
@@ -370,7 +381,7 @@
     <!-- ========================
          SECTION: TALENTOS
     ======================== -->
-    <section id="section-talentos" class="section-content px-gutter py-6 pb-20">
+    <section id="section-talentos" class="section-content px-gutter-mobile sm:px-gutter py-4 sm:py-6 pb-20">
       <!-- Top bar -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
         <div class="flex flex-col">
@@ -384,11 +395,11 @@
           <p class="text-body-md font-sans text-text-muted mt-0.5">Despliegue ágil de ingenieros pre-calificados para integración enterprise.</p>
         </div>
         <!-- Action & KPI Metrics -->
-        <div class="flex items-center gap-3 shrink-0">
-          <button onclick="openManualTalentForm()" class="px-4 py-3 rounded-xl bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all flex items-center gap-2 shadow-sm whitespace-nowrap">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
+          <button onclick="openManualTalentForm()" class="px-4 py-3 rounded-xl bg-primary-container text-on-primary-container text-label-md font-label font-bold hover:bg-primary transition-all flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
             <span class="material-symbols-outlined text-[20px]">person_add</span>+ Cargar Talento
           </button>
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-3 gap-2 sm:gap-3">
             <div class="flex flex-col bg-surface-card p-3 rounded-xl shadow-sm border border-border-subtle text-center">
               <span class="text-label-sm font-label text-text-muted uppercase tracking-wider">Total</span>
               <span class="text-headline-md font-sans font-bold text-text-heading" id="metricTotal">18</span>
@@ -433,7 +444,7 @@
     <!-- ========================
          SECTION: CLIENTES
     ======================== -->
-    <section id="section-clientes" class="section-content hidden px-gutter py-6 pb-20">
+    <section id="section-clientes" class="section-content hidden px-gutter-mobile sm:px-gutter py-4 sm:py-6 pb-20">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
         <div>
           <div class="flex items-center gap-2 text-text-muted text-label-sm font-label uppercase tracking-wider mb-1">
@@ -458,7 +469,7 @@
     <!-- ========================
          SECTION: CARGAR CV
     ======================== -->
-    <section id="section-cargar-cv" class="section-content hidden px-gutter py-6 pb-20">
+    <section id="section-cargar-cv" class="section-content hidden px-gutter-mobile sm:px-gutter py-4 sm:py-6 pb-20">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
         <div>
           <div class="flex items-center gap-2 mb-1">
@@ -571,7 +582,7 @@
             </div>
             <div class="p-5 flex flex-col gap-4">
               <!-- Personal data -->
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="col-span-2">
                   <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Nombre completo</label>
                   <input type="text" id="parsedNombre" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-canvas text-body-md font-sans focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,120,212,0.15)]"/>
@@ -591,7 +602,7 @@
               </div>
 
               <!-- Professional data -->
-              <div class="pt-3 border-t border-border-subtle grid grid-cols-2 gap-4">
+              <div class="pt-3 border-t border-border-subtle grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label class="text-label-lg font-label font-bold text-text-heading mb-1.5 block">Rol Principal</label>
                   <input type="text" id="parsedRol" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-canvas text-body-md font-sans focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,120,212,0.15)]"/>
@@ -660,7 +671,7 @@
     <!-- ========================
          SECTION: PROPUESTAS
     ======================== -->
-    <section id="section-propuestas" class="section-content hidden px-gutter py-6 pb-20">
+    <section id="section-propuestas" class="section-content hidden px-gutter-mobile sm:px-gutter py-4 sm:py-6 pb-20">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
         <div>
           <div class="flex items-center gap-2 mb-1">
@@ -676,7 +687,7 @@
     <!-- ========================
          SECTION: REPORTES
     ======================== -->
-    <section id="section-reportes" class="section-content hidden px-gutter py-6 pb-20">
+    <section id="section-reportes" class="section-content hidden px-gutter-mobile sm:px-gutter py-4 sm:py-6 pb-20">
       <div class="mb-5">
         <div class="flex items-center gap-2 mb-1">
           <span class="px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-fixed text-label-sm font-label uppercase tracking-wider font-bold">Analytics Dashboard</span>
@@ -696,7 +707,7 @@
 <div id="talentModal" class="hidden fixed inset-0 z-[100] flex">
   <div class="flex-1 bg-black/40 backdrop-blur-sm" onclick="closeTalentModal()"></div>
   <div class="modal-panel translate-x-full w-full max-w-xl bg-surface-card h-full overflow-y-auto shadow-2xl">
-    <div id="talentModalContent" class="p-6"><!-- Rendered by JS --></div>
+    <div id="talentModalContent" class="p-4 sm:p-6"><!-- Rendered by JS --></div>
   </div>
 </div>
 
@@ -705,7 +716,7 @@
 ============================================================ -->
 <div id="assignModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
   <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="document.getElementById('assignModal').classList.add('hidden')"></div>
-  <div class="relative w-full max-w-lg bg-surface-card rounded-2xl shadow-2xl p-6 z-10">
+  <div class="relative w-full max-w-lg bg-surface-card rounded-2xl shadow-2xl p-4 sm:p-6 z-10 max-h-[90vh] overflow-y-auto">
     <div id="assignModalContent"><!-- Rendered by JS --></div>
   </div>
 </div>
@@ -740,7 +751,7 @@
         <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Nombre Empresa / Cliente *</label>
         <input type="text" id="clientNombre" required placeholder="Ej. TechCorp LATAM" class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
       </div>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Industria / Sector</label>
           <input type="text" id="clientIndustria" placeholder="Ej. Fintech, Retail..." class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
@@ -750,7 +761,7 @@
           <input type="text" id="clientPais" placeholder="Ej. Argentina, Colombia..." class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>
         </div>
       </div>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label class="text-label-sm font-label font-bold text-text-heading block mb-1">Contacto Principal</label>
           <input type="text" id="clientContacto" placeholder="Nombre de contacto..." class="w-full h-10 px-3 rounded-xl border border-border-strong bg-surface-card text-body-md font-sans focus:outline-none focus:border-primary"/>

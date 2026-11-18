@@ -127,7 +127,17 @@ function stackIcon(tech) {
 }
 
 // ---- NAVIGATION ----
+// Menú lateral: fijo en escritorio, desplegable en celular y tablet
+function toggleSidebar(open) {
+  const sb = document.getElementById('sidebar');
+  if (!sb) return;
+  const show = open ?? sb.classList.contains('-translate-x-full');
+  sb.classList.toggle('-translate-x-full', !show);
+  document.getElementById('sidebarBackdrop')?.classList.toggle('hidden', !show);
+}
+
 function navigate(section) {
+  if (window.innerWidth < 1024) toggleSidebar(false);
   VX.currentSection = section;
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-bold');
@@ -503,8 +513,8 @@ function openTalentModal(id) {
     </div>` : ''}
 
     <!-- CTA -->
-    <div class="flex gap-3">
-      <button onclick="addTalentToProposal(${t.id}); closeTalentModal();" class="flex-1 py-2.5 rounded-lg bg-primary-container text-on-primary-container text-label-lg font-label font-bold hover:bg-primary transition-all flex items-center justify-center gap-2">
+    <div class="flex flex-wrap gap-2 sm:gap-3">
+      <button onclick="addTalentToProposal(${t.id}); closeTalentModal();" class="flex-1 basis-full sm:basis-auto py-2.5 rounded-lg bg-primary-container text-on-primary-container text-label-lg font-label font-bold hover:bg-primary transition-all flex items-center justify-center gap-2">
         <span class="material-symbols-outlined text-[18px]">co_present</span>Agregar a Propuesta
       </button>
       <button onclick="openTalentEdit('${t.id}')" class="px-4 py-2.5 rounded-lg border border-primary/30 text-primary text-label-lg font-label font-bold hover:bg-surface-container-low transition-all flex items-center gap-1">
@@ -835,14 +845,14 @@ function renderClientDetail(id) {
 
     <!-- Implementación Requerida & Especificaciones -->
     <div class="bg-surface-card rounded-xl p-6 shadow-sm mb-5 border border-border-subtle">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <div class="flex items-center gap-2 min-w-0">
           <span class="material-symbols-outlined text-primary text-[22px]">architecture</span>
           <h3 class="text-headline-sm font-sans font-bold text-text-heading">Implementación Requerida & Requerimientos Técnicos</h3>
         </div>
-        <label class="flex items-center gap-2 cursor-pointer text-label-sm font-label font-semibold text-text-heading bg-surface-canvas px-3 py-1.5 rounded-lg border border-border-subtle hover:bg-surface-container-low transition-all">
+        <label class="shrink-0 flex items-center gap-2 cursor-pointer text-label-sm font-label font-semibold text-text-heading bg-surface-canvas px-2 sm:px-3 py-1.5 rounded-lg border border-border-subtle hover:bg-surface-container-low transition-all">
           <input type="checkbox" id="editNecToggle_${c.id}" onchange="toggleInlineEdit('${c.id}', 'necesidades')" class="w-4 h-4 rounded text-primary border-border-strong focus:ring-primary">
-          <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-primary">edit_note</span>Habilitar edición</span>
+          <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-primary">edit_note</span><span class="hidden sm:inline">Habilitar edición</span></span>
         </label>
       </div>
 
@@ -862,14 +872,14 @@ function renderClientDetail(id) {
 
     <!-- Notas de Reunión & Ideas -->
     <div class="bg-surface-card rounded-xl p-6 shadow-sm mb-5 border border-border-subtle">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <div class="flex items-center gap-2 min-w-0">
           <span class="material-symbols-outlined text-primary text-[22px]">notes</span>
           <h3 class="text-headline-sm font-sans font-bold text-text-heading">Notas de Reuniones, Ideas & Acuerdos</h3>
         </div>
-        <label class="flex items-center gap-2 cursor-pointer text-label-sm font-label font-semibold text-text-heading bg-surface-canvas px-3 py-1.5 rounded-lg border border-border-subtle hover:bg-surface-container-low transition-all">
+        <label class="shrink-0 flex items-center gap-2 cursor-pointer text-label-sm font-label font-semibold text-text-heading bg-surface-canvas px-2 sm:px-3 py-1.5 rounded-lg border border-border-subtle hover:bg-surface-container-low transition-all">
           <input type="checkbox" id="editNotasToggle_${c.id}" onchange="toggleInlineEdit('${c.id}', 'notas')" class="w-4 h-4 rounded text-primary border-border-strong focus:ring-primary">
-          <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-primary">edit_note</span>Habilitar edición</span>
+          <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-primary">edit_note</span><span class="hidden sm:inline">Habilitar edición</span></span>
         </label>
       </div>
 
@@ -889,18 +899,18 @@ function renderClientDetail(id) {
 
     <!-- Propuesta del Cliente -->
     <div class="bg-surface-card rounded-xl p-6 shadow-sm mb-5 border border-border-subtle">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <div class="flex items-center gap-2 min-w-0">
           <span class="material-symbols-outlined text-primary text-[22px]">description</span>
           <h3 class="text-headline-sm font-sans font-bold text-text-heading">Propuesta para el Cliente</h3>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 min-w-0">
           <button onclick="navigate('propuestas'); selectProposalClient('${c.id}');" class="px-3 py-1.5 rounded-lg bg-surface-container-high text-primary text-label-sm font-label font-bold hover:bg-surface-container transition-all flex items-center gap-1">
             <span class="material-symbols-outlined text-[16px]">co_present</span>Ir a Propuestas Client-Ready
           </button>
-          <label class="flex items-center gap-2 cursor-pointer text-label-sm font-label font-semibold text-text-heading bg-surface-canvas px-3 py-1.5 rounded-lg border border-border-subtle hover:bg-surface-container-low transition-all">
+          <label class="shrink-0 flex items-center gap-2 cursor-pointer text-label-sm font-label font-semibold text-text-heading bg-surface-canvas px-2 sm:px-3 py-1.5 rounded-lg border border-border-subtle hover:bg-surface-container-low transition-all">
             <input type="checkbox" id="editPropuestaTextoToggle_${c.id}" onchange="toggleInlineEdit('${c.id}', 'propuestaTexto')" class="w-4 h-4 rounded text-primary border-border-strong focus:ring-primary">
-            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-primary">edit_note</span>Habilitar edición</span>
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-primary">edit_note</span><span class="hidden sm:inline">Habilitar edición</span></span>
           </label>
         </div>
       </div>
@@ -922,7 +932,7 @@ function renderClientDetail(id) {
     <!-- Archivos & Documentos Adjuntos -->
     <div class="bg-surface-card rounded-xl p-6 shadow-sm mb-5 border border-border-subtle">
       <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 min-w-0">
           <span class="material-symbols-outlined text-primary text-[22px]">folder_open</span>
           <h3 class="text-headline-sm font-sans font-bold text-text-heading">Archivos & Documentos Adjuntos</h3>
           <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-label-sm font-label font-bold">${(c.archivos || []).length}</span>
@@ -966,7 +976,7 @@ function renderClientDetail(id) {
     <!-- Assigned resources -->
     <div class="bg-surface-card rounded-xl p-5 shadow-sm mb-5 border border-border-subtle">
       <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 min-w-0">
           <span class="material-symbols-outlined text-primary text-[20px]">group</span>
           <h3 class="text-headline-sm font-sans font-bold text-text-heading">Recursos Asignados</h3>
           <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-label-sm font-label font-bold">${assignedTalents.length}</span>
@@ -1001,7 +1011,7 @@ function renderClientDetail(id) {
     <!-- Calls log -->
     <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
       <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 min-w-0">
           <span class="material-symbols-outlined text-primary text-[20px]">videocam</span>
           <h3 class="text-headline-sm font-sans font-bold text-text-heading">Bitácora de Calls</h3>
           <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-label-sm font-label font-bold">${c.calls?.length || 0}</span>
@@ -1026,7 +1036,7 @@ function renderClientDetail(id) {
             <div class="flex-1 pb-4">
               <div class="flex items-start justify-between gap-2 mb-2">
                 <div>
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
                     <span class="text-label-lg font-label font-bold text-text-heading">${call.plataforma}</span>
                     <span class="px-2 py-0.5 rounded-full bg-surface-container text-text-muted text-[10px] font-label font-semibold uppercase tracking-wider">${call.fecha} · ${call.hora}</span>
                   </div>
@@ -1734,7 +1744,7 @@ function renderPropuestas() {
 
         <!-- Resources Selection -->
         <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
-          <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center justify-between gap-2 mb-3">
             <h4 class="text-label-lg font-label font-bold text-text-heading flex items-center gap-1.5">
               <span class="material-symbols-outlined text-primary text-[18px]">group</span>Recursos para la Propuesta (${activeTalents.length})
             </h4>
@@ -1768,7 +1778,7 @@ function renderPropuestas() {
         <div id="proposalPreview" class="bg-surface-card rounded-2xl shadow-lg border border-border-subtle overflow-hidden">
           <!-- Header branding -->
           <div class="bg-gradient-to-r from-legacy-brand-navy to-primary p-6 text-on-primary relative">
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center justify-between gap-2 mb-3">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center">
                   <span class="material-symbols-outlined text-tertiary-fixed text-[24px]">hub</span>
@@ -1885,7 +1895,7 @@ function renderReportes() {
     <!-- KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
       <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between gap-2 mb-3">
           <span class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[20px]">group</span></span>
           <span class="text-label-sm font-label font-bold text-status-available">+12% este mes</span>
         </div>
@@ -1893,7 +1903,7 @@ function renderReportes() {
         <div class="text-body-md font-sans text-text-muted">Total Pool</div>
       </div>
       <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between gap-2 mb-3">
           <span class="w-10 h-10 rounded-xl bg-[#ECFDF5] flex items-center justify-center"><span class="material-symbols-outlined text-status-available text-[20px]">check_circle</span></span>
           <span class="text-label-sm font-label font-bold text-status-available">Inmediatos</span>
         </div>
@@ -1901,7 +1911,7 @@ function renderReportes() {
         <div class="text-body-md font-sans text-text-muted">En Bench</div>
       </div>
       <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between gap-2 mb-3">
           <span class="w-10 h-10 rounded-xl bg-[#EEF2FF] flex items-center justify-center"><span class="material-symbols-outlined text-status-placed text-[20px]">assignment</span></span>
           <span class="text-label-sm font-label font-bold text-status-placed">En proyectos</span>
         </div>
