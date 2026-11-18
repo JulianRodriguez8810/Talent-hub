@@ -1,5 +1,5 @@
 # Imagen de Talent Hub para el VPS (Coolify). Los datos viven en un volumen montado en /app/data.
-# Configuración por variables en Coolify: TH_SECRET (obligatoria), BACKUP_DIR (opcional).
+# Configuración: data/.env en el volumen (TH_SECRET obligatoria, BACKUP_DIR opcional) o variables en Coolify.
 FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=3200
