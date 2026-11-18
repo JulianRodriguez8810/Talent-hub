@@ -10,6 +10,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const env = Object.fromEntries((fs.existsSync(path.join(ROOT, '.env')) ? fs.readFileSync(path.join(ROOT, '.env'), 'utf8') : '')
   .split(/\r?\n/).filter((l) => /^[A-Z_]+=/.test(l)).map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1).trim()]));
+// En Docker (Coolify) la configuración llega como variables de entorno
+for (const k of ['PORT', 'TH_SECRET', 'BACKUP_DIR']) if (process.env[k]) env[k] = process.env[k];
 const PORT = Number(env.PORT) || 3200;
 if (!env.TH_SECRET) { console.error('Falta TH_SECRET en .env'); process.exit(1); }
 

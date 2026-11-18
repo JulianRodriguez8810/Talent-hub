@@ -1356,8 +1356,10 @@ async function extractTextFromFile(file) {
         for (let i = 1; i <= Math.min(pdf.numPages, 5); i++) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
-          const pageText = content.items.map(item => item.str).join(" ");
-          text += pageText + "\n";
+          const pageText = content.items.map(item => item.str + (item.hasEOL ? "\n" : " ")).join("");
+          // Los links (LinkedIn, mailto) suelen estar solo como anotación, no en el texto visible
+          const links = (await page.getAnnotations()).filter(a => a.url).map(a => a.url).join("\n");
+          text += pageText + "\n" + links + "\n";
         }
       }
     } else {
@@ -1381,8 +1383,8 @@ function fillRealDataFromCV(rawText, filename) {
   const skillsContainer = document.getElementById('parsedSkillsContainer');
   if (skillsContainer && parsed.skills) {
     skillsContainer.innerHTML = parsed.skills.map(s => `
-      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container border border-border-subtle text-text-body text-label-md font-label font-semibold">
-        <span class="material-symbols-outlined text-[12px] text-primary">${stackIcon(s)}</span>${s}
+      <span data-skill="${s.replace(/"/g, '&quot;')}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container border border-border-subtle text-text-body text-label-md font-label font-semibold">
+<span class="material-symbols-outlined text-[12px] text-primary">${stackIcon(s)}</span>${s}
         <button onclick="this.parentElement.remove()" class="ml-0.5 text-text-muted hover:text-error"><span class="material-symbols-outlined text-[14px]">close</span></button>
       </span>`).join('');
   }
@@ -1423,8 +1425,10 @@ function parseCVContent(text, filename) {
   const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   const email = emailMatch ? emailMatch[0] : "";
 
-  const phoneMatch = text.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/);
-  const telefono = phoneMatch ? phoneMatch[0] : "";
+  // Secuencia de dígitos, espacios, guiones y paréntesis con 8 a 15 dígitos en total
+  const phoneMatch = (text.match(/\+?\(?\d[\d\s().-]{6,22}\d/g) || [])
+    .find(p => { const n = p.replace(/\D/g, '').length; return n >= 8 && n <= 15 && !/^(19|20)\d\d\s*[-–]/.test(p); });
+  const telefono = phoneMatch ? phoneMatch.trim() : "";
 
   const linkedinMatch = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
   const linkedin = linkedinMatch ? linkedinMatch[0].replace(/^https?:\/\//, '') : "";
@@ -1441,11 +1445,13 @@ function parseCVContent(text, filename) {
     "DevOps", "Terraform", "Jenkins", "JavaScript", "TypeScript", "C#", "Java", "AWS", "GCP",
     "Databricks", "Spark", "IA/ML", "Figma", "UX/UI", "QA", "Cypress", "Selenium", "Salesforce",
     "Scrum", "SAFe", "Power BI", "LLM", "Microservicios", "Security", "Swift", "iOS", "Flutter",
-    "React Native", "Android", "MongoDB", "Angular", "Vue", "RabbitMQ", "Redis"
+    "React Native", "Android", "MongoDB", "Angular", "Vue", "RabbitMQ", "Redis",
+    "Playwright", "Appium", "Cucumber", "Postman", "Swagger", "JIRA", "TestRail", "BrowserStack",
+    "Charles Proxy", "Xcode", "Android Studio", "Jest", "Git", "PHP", "Laravel", "Django", "Next.js"
   ];
   const foundSkills = knownTechs.filter(tech => {
     const escaped = tech.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-    const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+    const regex = new RegExp(`(?<![\\w.#+])${escaped}(?![\\w#+])`, 'i');
     return regex.test(text);
   });
 
@@ -1464,36 +1470,40 @@ function parseCVContent(text, filename) {
     'Project Manager': /project manager|pmp|lider de proyecto/i
   };
 
-  let detectedRol = "Software Engineer";
+  // El rol que más veces aparece (antes ganaba el primero de la lista con una sola mención)
+  let detectedRol = "Software Engineer", best = 0;
   for (const [rolName, regex] of Object.entries(rolesMap)) {
-    if (regex.test(text) || regex.test(filename)) {
-      detectedRol = rolName;
-      break;
-    }
+    const n = (`${filename} ${text}`.match(new RegExp(`\\b(?:${regex.source})\\b`, 'gi')) || []).length;
+    if (n > best) { best = n; detectedRol = rolName; }
   }
 
-  let seniority = "Senior";
-  if (/lead|principal|head|director/i.test(text)) seniority = "Lead";
-  else if (/semi-senior|ssr|semi senior/i.test(text)) seniority = "Semi-Senior";
-  else if (/junior|jr/i.test(text)) seniority = "Junior";
-  else if (/senior|sr/i.test(text)) seniority = "Senior";
+  // Seniority: la primera mención (resumen o puesto más reciente)
+  const senMap = [['Lead', /\b(?:lead|principal|head of)\b/i], ['Semi-Senior', /\b(?:semi[- ]?senior|ssr)\b/i],
+    ['Junior', /\b(?:junior|jr)\b/i], ['Senior', /\b(?:senior|sr)\b/i]];
+  let seniority = "Senior", senPos = Infinity;
+  for (const [name, re] of senMap) {
+    const i = text.search(re);
+    if (i >= 0 && i < senPos) { senPos = i; seniority = name; }
+  }
 
   const expMatch = text.match(/(\d{1,2})\s*(?:\+)?\s*(?:años|years|yrs)/i);
-  const experiencia = expMatch ? parseFloat(expMatch[1]) : 5;
+  const experiencia = expMatch ? parseFloat(expMatch[1]) : '';
 
   const pais = normalizeCountry(text);
 
-  let ingles = "C1";
-  if (/c2|native|nativo/i.test(text)) ingles = "C2";
-  else if (/c1|advanced|avanzado/i.test(text)) ingles = "C1";
-  else if (/b2|upper intermediate/i.test(text)) ingles = "B2";
-  else if (/b1|intermediate|intermedio/i.test(text)) ingles = "B1";
+  // Inglés: solo lo que dice al lado de "English"/"Inglés" (antes "Spanish (Native)" daba C2)
+  const engCtx = (text.match(/(?:english|ingl[eé]s)[^\n]{0,40}/i) || [''])[0]
+    .split(/spanish|espa[nñ]ol|portugu|french|franc[eé]s|german|alem[aá]n|italian/i)[0];
+  let ingles = "B2";
+  if (/c2|native|nativo|bilingual|biling[üu]e|proficient/i.test(engCtx)) ingles = "C2";
+  else if (/c1|advanced|avanzado|fluent|fluido/i.test(engCtx)) ingles = "C1";
+  else if (/b2|upper[- ]intermediate/i.test(engCtx)) ingles = "B2";
+  else if (/b1|intermediate|intermedio/i.test(engCtx)) ingles = "B1";
+  else if (/a2|basic|b[áa]sico/i.test(engCtx)) ingles = "A2";
 
-  let resumen = "Profesional IT con sólida experiencia en desarrollo de software y soluciones tecnológicas.";
-  if (text.length > 50) {
-    const cleanSnippet = text.replace(/[\r\n]+/g, ' ').slice(0, 300).trim();
-    resumen = cleanSnippet.length > 60 ? cleanSnippet + "..." : resumen;
-  }
+  // Resumen: la sección SUMMARY/PERFIL/ABOUT del CV, si existe
+  const sumMatch = text.match(/\b(?:summary|professional summary|profile|about me|perfil(?: profesional)?|resumen|sobre m[ií])\b\s*:?\s*([\s\S]{40,1200}?)(?=\n\s*(?:work experience|experience|experiencia|education|educaci[oó]n|skills|habilidades)\b|$)/i);
+  const resumen = sumMatch ? sumMatch[1].replace(/\s+/g, ' ').trim() : "";
 
   return {
     parsedNombre: nombre,
@@ -1507,7 +1517,7 @@ function parseCVContent(text, filename) {
     parsedIngles: ingles,
     parsedSeniority: seniority,
     parsedResumen: resumen,
-    skills: foundSkills.length > 0 ? foundSkills : [detectedRol.includes("Architect") ? "Azure" : "JavaScript", "SQL"]
+    skills: foundSkills
   };
 }
 
@@ -1517,6 +1527,7 @@ function addSkillChip() {
   const container = document.getElementById('parsedSkillsContainer');
   const s = input.value.trim();
   const chip = document.createElement('span');
+  chip.dataset.skill = s;
   chip.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container border border-border-subtle text-text-body text-label-md font-label font-semibold';
   chip.innerHTML = `<span class="material-symbols-outlined text-[12px] text-primary">${stackIcon(s)}</span>${s}<button onclick="this.parentElement.remove()" class="ml-0.5 text-text-muted hover:text-error"><span class="material-symbols-outlined text-[14px]">close</span></button>`;
   container.appendChild(chip);
@@ -1567,12 +1578,7 @@ async function confirmCVAndAdd() {
   }
 
   // Collect skills
-  const skillEls = document.querySelectorAll('#parsedSkillsContainer span');
-  const skills = [];
-  skillEls.forEach(el => {
-    const text = el.childNodes[1]?.textContent?.trim();
-    if (text) skills.push(text);
-  });
+  const skills = [...document.querySelectorAll('#parsedSkillsContainer [data-skill]')].map(el => el.dataset.skill);
 
   const zonaMap = { 'Argentina': 'GMT-3', 'Colombia': 'GMT-5', 'México': 'GMT-6', 'Chile': 'GMT-4', 'Uruguay': 'GMT-3' };
 
