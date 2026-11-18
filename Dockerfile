@@ -3,7 +3,7 @@
 FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=3200
-COPY server.mjs index.html app.html app.js notebook-abierta.png notebook-cerrada.png ./
+COPY server.mjs index.html app.html app.js servidor-hostinger.jpg ./
 COPY scripts/usuario.mjs ./scripts/
 # El volumen hereda este dueño al crearse: sin esto, el usuario node no puede escribir la base
 RUN mkdir -p data && chown node:node data
