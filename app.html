@@ -244,18 +244,8 @@
       <!-- Stack -->
       <div class="flex flex-col gap-1.5">
         <span class="text-[11px] font-label font-bold text-text-heading">Stack</span>
-        <div class="flex flex-wrap gap-1">
-          <button class="filter-chip px-2 py-0.5 rounded-full border bg-surface-container border-transparent text-text-body text-[11px] font-label font-semibold hover:border-border-strong transition-all" onclick="toggleFilter('stack','Azure',this)">Azure</button>
-          <button class="filter-chip px-2 py-0.5 rounded-full border bg-surface-container border-transparent text-text-body text-[11px] font-label font-semibold hover:border-border-strong transition-all" onclick="toggleFilter('stack','.NET',this)">.NET</button>
-          <button class="filter-chip px-2 py-0.5 rounded-full border bg-surface-container border-transparent text-text-body text-[11px] font-label font-semibold hover:border-border-strong transition-all" onclick="toggleFilter('stack','DevOps',this)">DevOps</button>
-          <button class="filter-chip px-2 py-0.5 rounded-full border bg-surface-container border-transparent text-text-body text-[11px] font-label font-semibold hover:border-border-strong transition-all" onclick="toggleFilter('stack','React',this)">React</button>
-          <button class="filter-chip px-2 py-0.5 rounded-full border bg-surface-container border-transparent text-text-body text-[11px] font-label font-semibold hover:border-border-strong transition-all" onclick="toggleFilter('stack','IA/ML',this)">IA/ML</button>
-          <button class="filter-chip px-2 py-0.5 rounded-full border bg-surface-container border-transparent text-text-body text-[11px] font-label font-semibold hover:border-border-strong transition-all" onclick="toggleFilter('stack','QA',this)">QA</button>
-          <button class="filter-chip px-2 py-0.5 rounded-full border bg-surface-container border-transparent text-text-body text-[11px] font-label font-semibold hover:border-border-strong transition-all" onclick="toggleFilter('stack','UX/UI',this)">UX/UI</button>
-          <button class="filter-chip px-2 py-0.5 rounded-full border bg-surface-container border-transparent text-text-body text-[11px] font-label font-semibold hover:border-border-strong transition-all" onclick="toggleFilter('stack','Mobile',this)">Mobile</button>
-          <button class="filter-chip px-2 py-0.5 rounded-full border bg-surface-container border-transparent text-text-body text-[11px] font-label font-semibold hover:border-border-strong transition-all" onclick="toggleFilter('stack','Python',this)">Python</button>
-          <button class="filter-chip px-2 py-0.5 rounded-full border bg-surface-container border-transparent text-text-body text-[11px] font-label font-semibold hover:border-border-strong transition-all" onclick="toggleFilter('stack','Kubernetes',this)">Kubernetes</button>
-        </div>
+        <div id="stackFilterChips" class="flex flex-wrap gap-1"></div>
+        <button id="stackFilterMore" type="button" class="hidden self-start text-[11px] font-label font-semibold text-primary hover:underline" onclick="VX.stackShowAll = !VX.stackShowAll; renderStackFilters()"></button>
       </div>
 
       <!-- Inglés -->

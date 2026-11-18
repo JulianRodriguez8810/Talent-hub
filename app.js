@@ -202,10 +202,11 @@ function applyFilters() {
       if (!searchable.includes(q)) return false;
     }
 
-    // Stack — AND logic: talent must have ALL selected technologies
+    // Stack — AND logic: talent must have ALL selected technologies (en su stack o en el rol, ej. "QA")
     if (f.stack.length > 0) {
       const normStack = stackArr.map(s => removeAccents(s));
-      if (!f.stack.every(s => normStack.includes(removeAccents(s)))) return false;
+      const rol = removeAccents(t.rol || '');
+      if (!f.stack.every(s => normStack.includes(removeAccents(s)) || rol.includes(removeAccents(s)))) return false;
     }
     // Inglés
     if (f.ingles.length > 0 && !f.ingles.some(i => removeAccents(i) === removeAccents(t.ingles))) return false;
@@ -223,6 +224,7 @@ function applyFilters() {
     return true;
   });
 
+  renderStackFilters();
   renderTalentGrid();
   const countEl = document.getElementById('resultCount');
   if (countEl) countEl.textContent = `${VX.filteredTalents.length} resultados`;
@@ -232,6 +234,38 @@ function applyFilters() {
 
   const benchEl = document.getElementById('metricBench');
   if (benchEl) benchEl.textContent = VX.talents.filter(t => t.disponibilidad === 'Inmediata' && t.activo !== false).length;
+}
+
+// Filtros de Stack: se arman solos con las tecnologías de los talentos cargados, las más frecuentes primero.
+const STACK_VISIBLES = 15;
+function renderStackFilters() {
+  const box = document.getElementById('stackFilterChips');
+  if (!box) return;
+  const counts = new Map();
+  for (const t of VX.talents) {
+    if (t.activo === false || !Array.isArray(t.stack)) continue;
+    for (const s of new Set(t.stack.map(x => String(x).trim()).filter(Boolean))) counts.set(s, (counts.get(s) || 0) + 1);
+  }
+  for (const s of VX.filters.stack) if (!counts.has(s)) counts.set(s, 0); // un filtro elegido no desaparece
+  const todas = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'es'));
+  const elegidas = new Set(VX.filters.stack);
+  const visibles = VX.stackShowAll ? todas : todas.filter(([s], i) => i < STACK_VISIBLES || elegidas.has(s));
+  box.replaceChildren(...visibles.map(([s, n]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'filter-chip px-2 py-0.5 rounded-full border text-[11px] font-label font-semibold hover:border-border-strong transition-all '
+      + (elegidas.has(s) ? 'bg-[#E0F2FE] border-[#0284C7] text-[#0369A1]' : 'bg-surface-container border-transparent text-text-body');
+    b.title = `${n} talento${n === 1 ? '' : 's'}`;
+    b.textContent = s;
+    b.onclick = () => toggleFilter('stack', s, b);
+    return b;
+  }));
+  if (!todas.length) box.innerHTML = '<span class="text-[11px] text-text-muted">Aparecen al cargar talentos.</span>';
+  const more = document.getElementById('stackFilterMore');
+  if (more) {
+    more.classList.toggle('hidden', todas.length <= STACK_VISIBLES);
+    more.textContent = VX.stackShowAll ? 'Ver menos' : `Ver todas (${todas.length})`;
+  }
 }
 
 function toggleFilter(type, value, el) {
