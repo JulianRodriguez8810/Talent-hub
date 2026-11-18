@@ -1,13 +1,21 @@
 # Pendientes — Talent Hub
 
-## Cómo está hoy (14/10/2026)
-- Corre en la **notebook** (`ssh julian@192.168.1.35`), en `C:\Aplicaciones\Talent Hub`, puerto 3200, tarea "Talent Hub" al iniciar sesión.
-- Sitio: **https://talent.virtual-xpert.net** (túnel de Cloudflare `vxs-social`, el mismo de VXS; DNS de `virtual-xpert.net` en Cloudflare).
-- Datos: `data/talenthub.db` (SQLite) y `data/cvs/`. Copia diaria a `C:\Users\Julian\OneDrive\Backups\Talent Hub` (últimas 14).
-- Usuarios: solo santiago.blas, dario.silva y julian.rodriguez (@virtual-xpert.net). Cada uno cambia su contraseña desde la app; para resetear una: `node scripts/usuario.mjs <email> "<Nombre>" <contraseña>` en la notebook.
+## Cómo está hoy (18/11/2026)
+- Corre en el **VPS de Hostinger** (`ssh root@177.7.43.164`), en Coolify: proyecto "Talent Hub", app `e9ehaqvz3niuwoil9vcmgoe2`, desde el repo público `JulianRodriguez8810/Talent-hub` (rama `main`, Dockerfile, puerto 3200). Coolify se abre con `ssh -L 8000:localhost:8000 root@177.7.43.164` y http://localhost:8000.
+- Sitio: **https://talent.virtual-xpert.net** (ruta en el túnel `vxs-vps` → `http://localhost:80`; DNS en Cloudflare apuntando a ese túnel).
+- Datos: volumen `e9ehaqvz3niuwoil9vcmgoe2-talent-hub-datatalenthub-data` en `/app/data`: `talenthub.db`, `cvs/`, `avatars/` y `.env` (solo `TH_SECRET`, la misma de la notebook, así no se cerraron las sesiones).
+- Usuarios: solo santiago.blas, dario.silva y julian.rodriguez (@virtual-xpert.net). Para resetear una contraseña: en Coolify → Terminal de la app, `node scripts/usuario.mjs <email> "<Nombre>" <contraseña>`.
 - Seguridad ya aplicada: login en el servidor (contraseñas con scrypt), cookie HttpOnly/Secure, 5 intentos fallidos bloquean 15 min, cabeceras de seguridad (CSP, HSTS, no iframes), `noindex` y `robots.txt`.
-- Para cambiar código: editar acá, copiar con `scp` a la notebook y reiniciar la tarea (botón en el Panel del servidor, http://127.0.0.1:3199 en la notebook).
+- Para cambiar código: commit acá, `git push origin main` y **Redeploy** en Coolify.
+- Aparece en el panel del VPS (http://vps:8088).
 - Vercel (proyecto `talent-hub`) borrado el 14/10.
+
+### Pase al VPS (18/11/2026)
+- Copia de los datos del corte en `C:\Aplicaciones WEB\Respaldos Talent Hub\2026-11-18-corte-vps`.
+- La notebook quedó con la tarea "Talent Hub" **frenada y deshabilitada** (plan de vuelta). Su `app.js.bak` es la versión anterior al lector de CV nuevo.
+- Volver atrás: apuntar el DNS `talent` al túnel `vxs-social` (la ruta sigue en `config-vxs.yml` de la notebook), copiar los datos del volumen a `C:\Aplicaciones\Talent Hub\data` y habilitar/arrancar la tarea.
+- [ ] **Respaldo fuera del VPS**: hoy no hay copia diaria (en la notebook iba a OneDrive). Definir junto con FirstTake.
+- [ ] Sacar la ruta `talent` de `config-vxs.yml` en la notebook cuando ya no haga falta volver atrás.
 
 ## Pendientes
 1. **Borrar el proyecto de Supabase** `nbyvtpiiyconbjqduyms` (Settings → General → Delete project). No tocar `qvwxglgufdqgxaeydlga`, que es de VXS.
